@@ -14,10 +14,10 @@ Process: The initial Docker image built successfully, but the container did not 
 
 
 
-## September 17, 2026 
+## September 17, 2026 — Angelica Tran
 
 **AI Tool:** ChatGPT
 
-**Use:** Used ChatGPT to help understand the Week 4 software architecture requirements, select and justify the Layered Architecture pattern, and organize the architecture documentation and component sketch requirements for Subsystem 2.
+**Use:** I worked on the architecture documentation and component sketch for Subsystem 2. I used ChatGPT for assistance with understanding the Week 4 requirements, checking my understanding of the Layered Architecture pattern, and organizing my ideas for the documentation and component sketch.
 
-**Prompt:** "Based on the Week 4 Software Architecture requirements, help me select an architectural pattern for Subsystem 2 and explain what I need to document in /docs/architecture/."
+**Prompt:** "Can you help me understand the Week 4 software architecture requirements and check if my Layered Architecture choice and component sketch cover what is required?"
