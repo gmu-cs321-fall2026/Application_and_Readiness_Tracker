@@ -1,5 +1,6 @@
 # Application_and_Readiness_Tracker
 Subsystem 2 for Mason CareerLaunch
+
 The Application & Readiness Tracker helps students manage their career applications and prepare for upcoming career activities. The subsystem provides a centralized place to track application information, interview dates, and career-related events.
 
 # About
