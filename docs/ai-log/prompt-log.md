@@ -24,6 +24,32 @@ Process: The initial Docker image built successfully, but the container did not 
 
 **Prompt:** "Can you help me understand the Week 4 software architecture requirements and check if my Layered Architecture choice and component sketch cover what is required?"
 
+### 2026-10-08 — Migrating Docker Setup from Python to Java
+
+**Asked:**
+
+After switching our project from Python/FastAPI to Java, I asked ChatGPT to review the existing Dockerfile, requirements.txt, and app/main/main.java files. I wanted to understand which files needed to be updated or removed, whether the existing Application Tracker Main.java could serve as the entry point, and how to update the Docker setup to run the Java application.
+
+**Produced:**
+
+ChatGPT suggested:
+
+- Replacing the Python 3.12 Docker image with Eclipse Temurin Java 17 JDK.
+- Removing the Python dependency installation steps from the Dockerfile.
+- Copying the Java source files from `app/applicationtracker/` into the container.
+- Compiling the Java files using `javac`.
+- Running the application using `java -cp out Main`.
+- Removing `requirements.txt` and the old FastAPI placeholder in `app/main/main.java` if no other team components depend on them.
+- Updating the README with Java compilation and Docker execution instructions.
+
+**Changed or rejected:**
+
+- Kept the existing four Java Application Tracker files rather than creating another Java entry point.
+- Selected Java 17 for the Docker environment to match the current Java implementation.
+- Removed the Python-specific Docker configuration because the project no longer uses FastAPI.
+- Kept the Docker setup focused on the current console application instead of adding an unsupported web server or API.
+- Preserved other team files until their purpose and dependencies could be confirmed.
+
 
 ## Application Tracker — AI Prompt Log
 
