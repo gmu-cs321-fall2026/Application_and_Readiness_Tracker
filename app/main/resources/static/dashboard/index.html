@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Job Search Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="dashboard.css"></head>
+<body><main>
+<h1>My job search</h1>
+<p class="sub">Your applications, interviews, and readiness in one place.</p>
+<nav aria-label="Views">
+  <button data-v="dash" aria-pressed="true">Dashboard</button>
+  <button data-v="int" aria-pressed="false">Interviews</button>
+  <button data-v="cal" aria-pressed="false">Calendar</button>
+</nav>
+
+<section id="dash">
+  <div class="top">
+    <div class="panel"><h2>Upcoming interviews</h2><div id="upcoming"></div></div>
+    <div class="panel"><h2>Readiness checklist</h2>
+      <div><span class="pct" id="pct"></span> <span class="mute" id="pctnote"></span></div>
+      <div class="track"><i id="fill"></i></div><div id="checklist"></div></div>
+  </div>
+  <div class="board" id="board" aria-label="Applications by stage"></div>
+</section>
+
+<section id="int" class="hide panel"><h2>Interview rounds</h2><div id="rounds"></div></section>
+
+<section id="cal" class="hide panel">
+  <div class="cal"><button id="prev" aria-label="Previous month">&lt;</button><h2 id="mtitle"></h2><button id="next" aria-label="Next month">&gt;</button>
+    <div class="legend"><span class="chip iv">★ Interview</span><span class="chip ev">◆ Career event</span></div></div>
+  <div id="grid"></div>
+</section>
+</main>
+<script src="mock-data.js"></script>
+<script src="dashboard.js"></script></body></html>
