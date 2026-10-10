@@ -21,3 +21,16 @@ Process: The initial Docker image built successfully, but the container did not 
 **Use:** I worked on the architecture documentation and component sketch for Subsystem 2. I used ChatGPT for assistance with understanding the Week 4 requirements, checking my understanding of the Layered Architecture pattern, and organizing my ideas for the documentation and component sketch.
 
 **Prompt:** "Can you help me understand the Week 4 software architecture requirements and check if my Layered Architecture choice and component sketch cover what is required?"
+
+
+## Dashboard — AI Prompt Log
+
+### 1. Dashboard front-end (index.html, dashboard.css, dashboard.js, mock-data.js)
+
+**AI Tool:** Claude
+
+**Asked:** I gave Claude the team's user stories and asked for Jira subtasks for the dashboard story, then asked for a front-end with application tracker columns by stage, the readiness checklist, upcoming interviews, and buttons to switch between interview and calendar views.
+
+**Produced:** A page with four stage columns (In Progress, Applied, Interview, Offer), an upcoming-interviews list, a readiness checklist with completion percentage, and Interviews and Calendar views. It uses mock data kept in a separate file, so the data functions can later be replaced with calls to the Java backend.
+
+**Changed or rejected:** I placed the files in app/main/resources/static/dashboard. When I first opened the page it was blank. The cause was that my file was named mock_data.js while index.html loads mock-data.js. I renamed it and the page worked. Moreover, I was not a big fan of the color palette it generated, so had to change the design a little bit. The data is mock data only, since the backend is not connected yet.
