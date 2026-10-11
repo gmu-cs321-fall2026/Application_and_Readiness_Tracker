@@ -15,6 +15,13 @@ The subsystem is designed to support:
 - Supporting calendar-based readiness tracking
 - Maintaining application and readiness information in the shared application database
 
+There are 5 features within this subsystem: 
+- Application Tracker
+- Readiness Checklist
+- Calendar View
+- Interview Stage Tracker
+- The Dashboard 
+
 ## Running the Application Tracker
 
 The Application Tracker is currently implemented in Java 17. It supports creating job applications, updating application statuses, adding notes, and viewing applications by their progress.
