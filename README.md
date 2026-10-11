@@ -15,20 +15,42 @@ The subsystem is designed to support:
 - Supporting calendar-based readiness tracking
 - Maintaining application and readiness information in the shared application database
 
-## Running with Docker 
+There are 5 features within this subsystem: 
+- Application Tracker
+- Readiness Checklist
+- Calendar View
+- Interview Stage Tracker
+- The Dashboard 
 
-1. cd into the project folder
-2. from the terminal/bash, build with this command:
+## Running the Application Tracker
 
-docker build -t myapp .
+The Application Tracker is currently implemented in Java 17. It supports creating job applications, updating application statuses, adding notes, and viewing applications by their progress.
 
-2. run it with:
+### Run Locally
 
-docker run -p 8000:8000 myapp 
+Make sure Java 17 or newer is installed.
 
-3. Then, if successfull, open:
+From the project root, run:
 
-http://127.0.0.1:8000/ 
+```bash
+mkdir -p out
+javac -d out app/applicationtracker/*.java
+java -cp out Main
+```
 
-**Note: to stop the session, you can run ctrl + C (on Mac).
+### Run with Docker
+
+Build the Docker image:
+
+```bash
+docker build -t application-tracker .
+```
+
+Run the application:
+
+```bash
+docker run -it --rm application-tracker
+```
+
+The application currently runs through a console menu. The web interface, API integration, and shared database are planned for future development.
 
