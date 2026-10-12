@@ -8,11 +8,11 @@ function board(){
   const act=apps.filter(a=>a.active&&STAGES.includes(a.stage));
   document.getElementById("board").innerHTML=STAGES.map(s=>{
     const l=act.filter(a=>a.stage===s);
-    return `<div class="col"><h3>${s}<span class="count">${l.length}</span></h3>`+(l.length?l.map(a=>{
+    return `<div class="col" data-stage="${s}"><h3>${s}<span class="count">${l.length}</span></h3>`+(l.length?l.map(a=>{
       const n=s==="Interview"?upcoming(a)[0]:null;
-      return `<div class="card"><b>${esc(a.employer)}</b><span>${esc(a.role)}</span>`+(n?`<div class="next">Next: ${fmt(n.at)}<br>${esc(n.type)}, ${esc(n.format)}</div>`:"")+`</div>`}).join(""):'<p class="mute">Nothing here yet.</p>')+`</div>`}).join("");
+      return `<div class="card" draggable="true" data-id="${a.id}"><b>${esc(a.employer)}</b><span>${esc(a.role)}</span>`+moveSel(a)+(n?`<div class="next">Next: ${fmt(n.at)}<br>${esc(n.type)}, ${esc(n.format)}</div>`:"")+`</div>`}).join(""):'<p class="mute">Nothing here yet.</p>')+`</div>`}).join("");
   const up=act.flatMap(a=>upcoming(a).map(i=>({...i,e:a.employer}))).sort((x,y)=>new Date(x.at)-new Date(y.at));
-  document.getElementById("upcoming").innerHTML=up.length?up.map(i=>`<div class="row"><span class="when">${fmt(i.at)}</span><span>${esc(i.e)}, ${esc(i.type)}</span></div>`).join(""):'<p class="mute">No interviews scheduled.</p>';
+  document.getElementById("upcoming").innerHTML=up.length?up.map(i=>`<div class="row"><span class="when">${fmt(i.at)}</span><span>${esc(i.e)}, ${esc(i.type)}</span></div>`).join(""):'<p class="mute">No interviews scheduled.</p>';wireDnD();
 }
 function checklist(){
   const done=list.filter(x=>x.d).length,p=list.length?Math.round(done/list.length*100):0;
@@ -46,3 +46,24 @@ document.getElementById("prev").onclick=()=>{cur=new Date(cur.getFullYear(),cur.
 document.getElementById("next").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);calendar()};
 Promise.all([getApplications(),getChecklist(),getEvents()]).then(([a,c,e])=>{apps=a;list=c;events=e;board();checklist();roundsView();calendar()})
  .catch(()=>{document.getElementById("dash").innerHTML='<div class="panel">Could not load your dashboard. Refresh to try again.</div>'});
+
+function moveSel(a){
+  return `<select class="mv" data-id="${a.id}" aria-label="Move ${esc(a.employer)} to a stage">`+
+    STAGES.map(s=>`<option${s===a.stage?" selected":""}>${s}</option>`).join("")+"</select>";
+}
+function moveApp(id,stage){
+  const a=apps.find(x=>String(x.id)===String(id));
+  if(a&&STAGES.includes(stage)&&a.stage!==stage){a.stage=stage;board();roundsView();calendar();}  // TODO: save to backend
+}
+function wireDnD(){
+  document.querySelectorAll(".card").forEach(c=>{
+    c.ondragstart=e=>{e.dataTransfer.setData("text/plain",c.dataset.id);e.dataTransfer.effectAllowed="move";c.classList.add("dragging")};
+    c.ondragend=()=>c.classList.remove("dragging");
+  });
+  document.querySelectorAll(".col").forEach(col=>{
+    col.ondragover=e=>{e.preventDefault();col.classList.add("over")};
+    col.ondragleave=()=>col.classList.remove("over");
+    col.ondrop=e=>{e.preventDefault();col.classList.remove("over");moveApp(e.dataTransfer.getData("text/plain"),col.dataset.stage)};
+  });
+  document.querySelectorAll(".mv").forEach(s=>s.onchange=()=>moveApp(s.dataset.id,s.value));
+}

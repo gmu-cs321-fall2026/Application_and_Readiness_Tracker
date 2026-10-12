@@ -1,7 +1,7 @@
-:root{--bg:#eef2f5;--panel:#fff;--ink:#1b2a3a;--mute:#5d6e7f;--line:#d5dde4;--accent:#0f766e;--accentbg:#d9f0ed;--gold:#b7791f;--goldbg:#fbf1dc;
+:root{--bg:#faf6f1;--panel:#ffffff;--ink:#4a3a30;--mute:#8b7869;--line:#eadfd3;--accent:#946b4c;--accentbg:#f3e8dd;--gold:#9a6531;--goldbg:#f8ecd9;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111a22;--panel:#1a2631;--ink:#e6edf3;--mute:#93a4b4;--line:#2c3b49;--accent:#3cc4b4;--accentbg:#14382f;--gold:#e5b04a;--goldbg:#3a2f17}}
-:root[data-theme="dark"]{--bg:#111a22;--panel:#1a2631;--ink:#e6edf3;--mute:#93a4b4;--line:#2c3b49;--accent:#3cc4b4;--accentbg:#14382f;--gold:#e5b04a;--goldbg:#3a2f17}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241b16;--panel:#2e241d;--ink:#f3eadf;--mute:#bfae9c;--line:#46382e;--accent:#d9b08c;--accentbg:#3d2d22;--gold:#e3b878;--goldbg:#45341f}}
+:root[data-theme="dark"]{--bg:#241b16;--panel:#2e241d;--ink:#f3eadf;--mute:#bfae9c;--line:#46382e;--accent:#d9b08c;--accentbg:#3d2d22;--gold:#e3b878;--goldbg:#45341f}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.45}
@@ -35,3 +35,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .chip{display:block;font-size:.75rem;padding:1px 4px;margin-top:2px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .iv{background:var(--goldbg);color:var(--gold)}.ev{background:var(--accentbg);color:var(--accent)}
 .hide{display:none}
+ 
+.card{cursor:grab}.card:active{cursor:grabbing}.card.dragging{opacity:.4}
+.col.over{outline:2px dashed var(--accent);outline-offset:-4px}
+.mv{display:block;margin-top:8px;font:inherit;font-size:.82rem;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:3px 6px;width:100%}
+.mv:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ 
+.panel,.col{border-radius:16px;box-shadow:0 2px 10px rgba(120,90,60,.08)}
+.card{border-radius:12px}.next{border-radius:8px}
+button{border-radius:999px}
