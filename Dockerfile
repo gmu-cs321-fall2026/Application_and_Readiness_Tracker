@@ -1,15 +1,15 @@
-# Use Python → install our two requirements → copy our application → run it on port 8000.
 
-FROM python:3.12-slim
+# Use Java 17 to build and run the application
+FROM eclipse-temurin:17-jdk
 
+# Set the working directory inside the container
 WORKDIR /app
 
-COPY requirements.txt .
+# Copy Application Tracker Java files
+COPY app/applicationtracker/ ./applicationtracker/
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Compile the Java source files
+RUN mkdir -p out && javac -d out applicationtracker/*.java
 
-COPY app ./app
-
-EXPOSE 8000
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the Application Tracker console program
+CMD ["java", "-cp", "out", "Main"]

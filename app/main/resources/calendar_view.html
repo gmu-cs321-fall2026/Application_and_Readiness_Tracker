@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendar | Application Tracker</title>
+<style>
+:root{--bg:#eef2f6;--surface:#fff;--ink:#14202e;--muted:#5b6b7c;--line:#d5dde6;--int:#1f4fd8;--int-bg:#e3eaff;--evt:#0b7a55;--evt-bg:#e6f6ef;--sel:#fff6dc;--focus:#d98e00;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:14px}
+.back{color:var(--muted);text-decoration:none;font-size:14px}
+.back:hover{color:var(--ink);text-decoration:underline}
+.embedded .back{display:none}
+.embedded .wrap{padding:8px}
+.embedded body{background:transparent}
+h1{font-size:26px;margin:0;letter-spacing:-.01em}
+.spacer{flex:1}
+.nav{display:flex;align-items:center;gap:6px}
+button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+.month{font-weight:600;min-width:150px;text-align:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;border-radius:0;background:transparent}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;color:var(--muted);font-size:13px;margin-bottom:12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+aside .legend{flex-direction:column;gap:8px;margin-bottom:0}
+#panel{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.panelhead{display:flex;justify-content:space-between;align-items:start;gap:8px}
+.panelhead button{padding:2px 10px;font-size:13px}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+svg.i{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dow,.grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.dow div{padding:8px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
+.cell{min-height:104px;padding:4px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:transparent;text-align:left;display:flex;flex-direction:column;gap:3px;align-items:stretch}
+.cell:nth-child(7n){border-right:0}
+.cell.out{opacity:.45}
+.cell.sel{background:var(--sel)}
+.cell .n{font-size:13px;padding:0 4px;display:flex;justify-content:space-between}
+.cell.today .n b{background:var(--ink);color:var(--surface);border-radius:10px;padding:0 7px}
+.chip{display:flex;align-items:center;gap:5px;font-size:12px;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden}
+.chip .t{overflow:hidden;text-overflow:ellipsis}
+.chip.interview{background:var(--int-bg);color:var(--int);border-left:4px solid var(--int);font-weight:600}
+.chip.event{background:var(--evt-bg);color:var(--evt);border:1.5px dashed var(--evt)}
+.more{font-size:12px;color:var(--muted);padding:0 4px}
+.card{box-shadow:0 1px 2px rgba(20,32,46,.06)}
+.cell{transition:background .12s}.cell:hover{background:#f4f7fb}.cell.sel{background:var(--sel)}
+.cell.today{background:#f1f6ff}
+.cell.today .n b{background:var(--int);color:#fff}
+.chip{border-radius:6px}
+.chip .t b{font-weight:700}
+.dow div{text-align:center;font-weight:600}
+.nav button,.seg button{padding:7px 14px}
+#today{font-weight:600}
+aside .legend label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px}
+aside .legend input{width:16px;height:16px;margin:0}
+select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;width:100%}
+.toast{position:fixed;right:16px;bottom:16px;max-width:320px;background:var(--ink);color:#fff;padding:12px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:none;z-index:10}
+.toast.show{display:block}
+.toolbar{display:grid;grid-template-columns:minmax(220px,1fr) 190px 190px;gap:12px;margin-bottom:14px;padding:14px}
+.toolbar label{display:block;margin-bottom:4px;color:var(--muted);font-size:13px;font-weight:600}
+.toolbar input,.toolbar select{width:100%;min-height:40px;margin:0;padding:8px 10px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;font:inherit}
+.warn{padding:10px 14px;margin-bottom:12px;background:#fff6dc;border:1px solid #e8c766;border-radius:8px;font-size:14px}
+.badge{display:inline-block;margin-top:4px;padding:1px 8px;border-radius:999px;background:var(--int-bg);color:var(--int);font-size:12px;font-weight:600}
+.readiness{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:12px;color:var(--muted)}
+.readiness .bar{width:96px;height:6px;overflow:hidden;background:#dfe5ec;border-radius:999px}
+.readiness .bar span{display:block;height:100%;background:var(--int)}
+.readiness.ready .bar span{background:var(--evt)}
+.task-list{margin:10px 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.task-list legend{padding:0 5px;font-size:13px;font-weight:700}
+.task{display:flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:pointer}
+.task input{width:16px;height:16px;margin-top:3px}
+.task input:checked+span{color:var(--muted);text-decoration:line-through}
+.plink{font-size:13px}
+@media(max-width:860px){.toolbar{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.toolbar{grid-template-columns:1fr}}
+.agenda{padding:6px 16px 16px}
+.agenda h3{margin:18px 0 6px;font-size:14px;color:var(--muted);font-weight:600}
+.row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;margin:4px 0;padding:10px 12px}
+.row.interview{border-left:5px solid var(--int)}
+.row.event{border:1.5px dashed var(--evt)}
+.row .time{width:76px;color:var(--muted);font-size:13px;flex:none}
+.row .ic{color:var(--int)}.row.event .ic{color:var(--evt)}
+.row .what{flex:1}.row small{display:block;color:var(--muted)}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}
+aside{padding:16px;position:sticky;top:12px}
+aside h2{font-size:17px;margin:0 0 10px}
+aside h4{margin:14px 0 4px;font-size:14px}
+aside .sub{color:var(--muted);font-size:13px}
+textarea{width:100%;min-height:64px;resize:vertical;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:6px}
+.ev{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.ev .head{display:flex;gap:6px;align-items:center;font-weight:600}
+.ev.interview .head{color:var(--int)}.ev.event .head{color:var(--evt)}
+@media(max-width:860px){.layout{grid-template-columns:1fr}aside{position:static}}
+@media(max-width:560px){.chip .t{display:none}.cell{min-height:64px}.row .time{width:60px}}
+/* Layout: full-width page, equal large day boxes, details panel in the right corner */
+:root{--cell-h:150px}
+.wrap{max-width:none;padding:20px 20px 40px}
+.layout{grid-template-columns:minmax(0,1fr) 340px;gap:20px}
+.dow,.grid{grid-template-columns:repeat(7,minmax(0,1fr))}
+.grid{grid-auto-rows:var(--cell-h)}
+.cell{height:var(--cell-h);min-height:0;overflow:hidden;padding:6px;min-width:0}
+.cell .n{font-size:14px;padding:0 2px 2px}
+.chip{font-size:12.5px;padding:3px 6px}
+@media(max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){:root{--cell-h:84px}.wrap{padding:12px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-int" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></symbol>
+  <symbol id="i-evt" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 3h14v18l-4-3H5z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header>
+    <!-- Change href to your main dashboard page -->
+    <a class="back" href="dashboard.html">&larr; Back to dashboard</a>
+    <div class="spacer"></div>
+    <div class="nav">
+      <button id="prev" aria-label="Previous month">&lsaquo;</button>
+      <span class="month" id="month" aria-live="polite"></span>
+      <button id="next" aria-label="Next month">&rsaquo;</button>
+      <button id="today">Today</button>
+    </div>
+    <div class="seg" role="group" aria-label="Choose view">
+      <button id="vCal" aria-pressed="true">Calendar</button>
+      <button id="vAgenda" aria-pressed="false">Agenda</button>
+    </div>
+  </header>
+
+  <div class="warn" id="dataWarning" hidden>Showing sample data. Your real interviews and events could not be loaded.</div>
+
+  <div class="card toolbar">
+    <div><label for="eventSearch">Search</label><input id="eventSearch" type="search" placeholder="Employer, role, or event name"></div>
+    <div><label for="statusFilter">Application stage</label>
+      <select id="statusFilter"><option value="">All stages</option><option value="applied">Applied</option><option value="online-assessment">Online assessment</option><option value="phone-screen">Phone screen</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option><option value="withdrawn">Withdrawn</option></select></div>
+    <div><label for="readinessFilter">Preparation</label>
+      <select id="readinessFilter"><option value="">Any</option><option value="not-started">Not started</option><option value="in-progress">In progress</option><option value="ready">Ready</option></select></div>
+  </div>
+
+  <div class="layout">
+    <main class="card" id="main"></main>
+    <aside class="card" id="side">
+      <div class="legend" aria-label="Show on calendar">
+        <label style="color:var(--int)"><input type="checkbox" data-f="interview" checked><svg class="i"><use href="#i-int"/></svg> Interview (solid, blue)</label>
+        <label style="color:var(--evt)"><input type="checkbox" data-f="event" checked><svg class="i"><use href="#i-evt"/></svg> Career event (dashed, green)</label>
+        <span><svg class="i"><use href="#i-note"/></svg> Has a note</span>
+        <span><svg class="i"><use href="#i-bell"/></svg> Reminder set</span>
+      </div>
+      <div id="panel" aria-live="polite"></div>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ---- Data -------------------------------------------------------------
+   Replace this with your backend call, e.g. getCalendarEvents(userId).
+   Each item needs: id, type ("interview" | "event"), title, start (ISO string), detail. */
+function sampleEvents() {
+  const d = new Date(), y = d.getFullYear(), m = d.getMonth();
+  const at = (day, h, min) => new Date(y, m, day, h, min).toISOString();
+  const T = n => ["Research employer", "Review job description", "Prepare STAR stories", "Prepare questions to ask", "Confirm interview logistics"]
+    .map((label, i) => ({ id: "t" + i, label, completed: i < n }));
+  return [
+    { id: "i1", type: "interview", title: "Acme Corp, Software Intern", start: at(9, 10, 0),  detail: "Round 1, phone screen", status: "phone-screen", tasks: T(5) },
+    { id: "i2", type: "interview", title: "Northbridge, Backend Intern", start: at(14, 14, 30), detail: "Round 2, technical, video call", status: "interview", tasks: T(2) },
+    { id: "i3", type: "interview", title: "Acme Corp, Software Intern", start: at(21, 11, 0), detail: "Round 3, onsite", status: "interview", tasks: T(0) },
+    { id: "e1", type: "event",     title: "GMU Career Fair",            start: at(14, 11, 0),  detail: "Johnson Center Ballroom" },
+    { id: "e2", type: "event",     title: "Resume Workshop",            start: at(17, 16, 0),  detail: "Career Services, room 204" },
+    { id: "e3", type: "event",     title: "Tech Employer Panel",        start: at(14, 17, 0),  detail: "Online" },
+    { id: "e4", type: "event",     title: "Mock Interview Night",       start: at(14, 19, 0),  detail: "Student union" }
+  ];
+}
+
+/* When shown inside the dashboard iframe, hide the "Back to dashboard" link and tighten spacing. */
+if (window.self !== window.top) document.documentElement.classList.add("embedded");
+
+/* ---- State ------------------------------------------------------------ */
+const $ = id => document.getElementById(id);
+const USER_ID = "me"; // replace with the logged-in user's id
+const prep = list => list.map(e => ({ ...e, date: new Date(e.start) })).sort((a, b) => a.date - b.date);
+
+/* Merges interviews (our subsystem) with registered career events (Events & Resources).
+   Field names below are assumptions: adjust them to match the real API responses. */
+function checkResponse(r) { if (!r.ok) throw new Error("Request failed: " + r.status); return r; }
+const mapInterview = a => ({
+  id: "i" + a.id, applicationId: a.applicationId || a.id, type: "interview", title: a.employer + ", " + a.role,
+  start: a.datetime, detail: [a.round ? "Round " + a.round : "", a.format].filter(Boolean).join(", "),
+  status: a.status || "interview", applicationUrl: a.applicationUrl || "",
+  tasks: Array.isArray(a.readinessTasks) ? a.readinessTasks : []
+});
+const mapCareerEvent = e => ({ id: "e" + e.id, type: "event", title: e.name, start: e.startTime, detail: e.location || "" });
+
+/* start / datetime / startTime must be ISO strings WITH a timezone offset (e.g. 2026-10-14T14:30:00-04:00),
+   otherwise events can land on the wrong day. If one source fails, the other still loads. */
+async function getCalendarEvents(userId) {
+  const id = encodeURIComponent(userId);
+  const res = await Promise.allSettled([
+    fetch("/applications/" + id + "/upcoming").then(checkResponse).then(r => r.json()),
+    fetch("/events/" + id + "/registered").then(checkResponse).then(r => r.json())
+  ]);
+  if (res.every(r => r.status === "rejected")) throw new Error("All calendar sources failed.");
+  const apps = res[0].status === "fulfilled" ? res[0].value : [];
+  const evts = res[1].status === "fulfilled" ? res[1].value : [];
+  return apps.filter(a => a.type === "interview").map(mapInterview).concat(evts.map(mapCareerEvent));
+}
+
+async function syncReadinessTask(applicationId, taskId, completed) {
+  if (!applicationId) return;
+  try { // placeholder endpoint: match the real readiness API
+    checkResponse(await fetch("/applications/" + encodeURIComponent(applicationId) + "/readiness/tasks/" + encodeURIComponent(taskId),
+      { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ completed }) }));
+  } catch (err) { toast("The readiness update could not be saved."); }
+}
+
+// Starts with sample data so the page works on its own; replaced when the API calls succeed.
+let events = prep(sampleEvents());
+let notes = {};
+try { notes = JSON.parse(localStorage.getItem("calendarNotes") || "{}"); } catch (e) {}
+const saveNotes = () => { try { localStorage.setItem("calendarNotes", JSON.stringify(notes)); } catch (e) {} };
+
+/* Reminders: { eventId: [minutesBefore, ...] }. Saved in the browser for now.
+   Every upcoming event gets the default schedule automatically (24 hours, 6 hours, 15 minutes before)
+   until the student changes it for that event. An empty list means "no reminders for this one". */
+const DEFAULT_REMINDERS = [1440, 360, 15];
+const REMINDER_OPTS = [[1440, "24 hours before"], [360, "6 hours before"], [15, "15 minutes before"]];
+let reminders = {};
+try { reminders = JSON.parse(localStorage.getItem("calendarReminders") || "{}"); } catch (e) {}
+const saveReminders = () => { try { localStorage.setItem("calendarReminders", JSON.stringify(reminders)); } catch (e) {} };
+function remindersFor(e) {
+  const r = reminders[e.id];
+  if (Array.isArray(r)) return r;
+  if (typeof r === "number") return [r]; // older saved format
+  return e.date > new Date() ? DEFAULT_REMINDERS : [];
+}
+const bell = e => remindersFor(e).length ? '<svg class="i" aria-label="Reminders set"><use href="#i-bell"/></svg>' : "";
+
+/* Sending reminders is the Notifications subsystem's job. Connect these to its API
+   (the endpoint and body are placeholders). An empty list means "remove this event's reminders". */
+function syncReminder(eventId, minutesBeforeList) {
+  // fetch("/notifications/reminders", { method: "PUT", headers: { "Content-Type": "application/json" },
+  //   body: JSON.stringify({ userId: USER_ID, eventId: eventId, minutesBefore: minutesBeforeList }) }).catch(() => {});
+}
+// Registers the default schedule for upcoming events the student hasn't customised. Should be safe to repeat.
+function syncDefaultReminders() {
+  events.forEach(e => { if (!(e.id in reminders) && e.date > new Date()) syncReminder(e.id, DEFAULT_REMINDERS); });
+}
+
+function reminderSelect(e) {
+  const cur = remindersFor(e), past = e.date < new Date();
+  return '<fieldset class="task-list"' + (past ? " disabled" : "") + '><legend>Reminders</legend>' +
+    REMINDER_OPTS.map(o => '<label class="task"><input type="checkbox" data-r-event="' + esc(e.id) + '" data-r-mins="' + o[0] + '"' +
+      (cur.includes(o[0]) ? " checked" : "") + "><span>" + o[1] + "</span></label>").join("") + "</fieldset>";
+}
+
+const now = new Date();
+let cursor = new Date(now.getFullYear(), now.getMonth(), 1);
+let view = "calendar";
+let selected = null; // date key; the notes section shows only after a date is clicked
+
+function key(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function time(d) { return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
+function icon(type) { return '<svg class="i" aria-hidden="true"><use href="#' + (type === "interview" ? "i-int" : "i-evt") + '"/></svg>'; }
+const label = type => type === "interview" ? "Interview" : "Career event";
+const hidden = {}; // event types switched off with the checkboxes on the right
+const filters = { search: "", status: "", readiness: "" };
+const STAGES = { "applied": "Applied", "online-assessment": "Online assessment", "phone-screen": "Phone screen", "interview": "Interview", "offer": "Offer", "accepted": "Accepted", "rejected": "Rejected", "withdrawn": "Withdrawn" };
+function readinessSummary(e) {
+  const t = Array.isArray(e.tasks) ? e.tasks : [], done = t.filter(x => x.completed).length;
+  return { done, total: t.length, pct: t.length ? Math.round(done / t.length * 100) : 0,
+           state: !t.length || !done ? "not-started" : done === t.length ? "ready" : "in-progress" };
+}
+function safeUrl(v) { try { const u = new URL(v, location.origin); return /^https?:$/.test(u.protocol) ? u.href : ""; } catch (e) { return ""; } }
+function shown(e) {
+  if (hidden[e.type]) return false;
+  if (filters.search && ![e.title, e.detail].join(" ").toLowerCase().includes(filters.search)) return false;
+  if (filters.status && e.status !== filters.status) return false;
+  if (filters.readiness && readinessSummary(e).state !== filters.readiness) return false;
+  return true;
+}
+const readyText = e => e.type === "interview" && e.tasks && e.tasks.length ? " &middot; " + readinessSummary(e).pct + "% ready" : "";
+function statusLine(e) { return e.type === "interview" && e.status ? '<span class="badge">' + esc(STAGES[e.status] || e.status) + "</span>" : ""; }
+function prepHtml(e) {
+  if (e.type !== "interview") return "";
+  let h = "";
+  if (e.tasks && e.tasks.length) {
+    const r = readinessSummary(e);
+    h += '<div class="readiness ' + r.state + '"><span class="bar" aria-hidden="true"><span style="width:' + r.pct + '%"></span></span><strong>' + r.pct + "% ready</strong> (" + r.done + " of " + r.total + ")</div>" +
+      '<fieldset class="task-list"><legend>Interview preparation</legend>' +
+      e.tasks.map(t => '<label class="task"><input type="checkbox" data-task-event="' + esc(e.id) + '" data-task-id="' + esc(t.id) + '"' + (t.completed ? " checked" : "") + "><span>" + esc(t.label) + "</span></label>").join("") + "</fieldset>";
+  }
+  const u = safeUrl(e.applicationUrl);
+  return h + (u ? '<a class="plink" href="' + esc(u) + '" target="_top">View application</a>' : "");
+}
+const onDay = k => events.filter(e => shown(e) && key(e.date) === k);
+const shortTime = d => d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).replace(" ", "").toLowerCase();
+const hasNote = e => !!(notes["e:" + e.id] || "").trim();
+
+/* ---- Calendar view ---------------------------------------------------- */
+function renderCalendar() {
+  const first = new Date(cursor), start = new Date(first);
+  start.setDate(1 - first.getDay());
+  let html = '<div class="dow">' + ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => "<div>" + d + "</div>").join("") + '</div><div class="grid">';
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const k = key(d), list = onDay(k);
+    const cls = ["cell", d.getMonth() !== cursor.getMonth() ? "out" : "", k === selected ? "sel" : "", k === key(now) ? "today" : ""].join(" ");
+    const chips = list.slice(0, 3).map(e =>
+      '<span class="chip ' + e.type + '">' + icon(e.type) + '<span class="t"><b>' + shortTime(e.date) + "</b> " + esc(e.title) + "</span>" +
+      (hasNote(e) ? '<svg class="i" aria-label="Has note"><use href="#i-note"/></svg>' : "") + bell(e) + "</span>").join("");
+    const more = list.length > 3 ? '<span class="more">+' + (list.length - 3) + " more</span>" : "";
+    const aria = d.toDateString() + ", " + list.length + " scheduled";
+    html += '<button class="' + cls + '" data-k="' + k + '" aria-label="' + aria + '"><span class="n"><b>' + d.getDate() + "</b></span>" + chips + more + "</button>";
+  }
+  $("main").innerHTML = html + "</div>";
+}
+
+/* ---- Agenda view ------------------------------------------------------ */
+function renderAgenda() {
+  const list = events.filter(e => shown(e) && e.date.getMonth() === cursor.getMonth() && e.date.getFullYear() === cursor.getFullYear());
+  if (!list.length) {
+    $("main").innerHTML = '<div class="empty">Nothing scheduled this month. Add an interview round to an application or register for a career event.</div>';
+    return;
+  }
+  let html = '<div class="agenda">', last = "";
+  list.forEach(e => {
+    const k = key(e.date);
+    if (k !== last) { html += "<h3>" + e.date.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }) + "</h3>"; last = k; }
+    html += '<button class="row ' + e.type + '" data-k="' + k + '"><span class="time">' + time(e.date) + '</span><span class="ic">' + icon(e.type) + '</span><span class="what">' + esc(e.title) +
+      "<small>" + label(e.type) + " &middot; " + esc(e.detail) + readyText(e) + "</small></span>" +
+      (hasNote(e) ? '<svg class="i" aria-label="Has note"><use href="#i-note"/></svg>' : "") + bell(e) + "</button>";
+  });
+  $("main").innerHTML = html + "</div>";
+}
+
+/* ---- Details and notes panel ------------------------------------------ */
+function renderPanel() {
+  if (!selected) {
+    $("panel").innerHTML = '<p class="sub">Select a date to see its details and add notes.</p>';
+    return;
+  }
+  const [y, m, d] = selected.split("-").map(Number);
+  const date = new Date(y, m - 1, d), list = onDay(selected);
+  let html = '<div class="panelhead"><h2>' + date.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }) +
+    '</h2><button data-close aria-label="Close notes">Close</button></div>';
+  html += '<label for="dayNote" class="sub">Note for this day</label><textarea id="dayNote" data-n="d:' + selected + '" placeholder="e.g. Bring printed resumes">' + esc(notes["d:" + selected] || "") + "</textarea>";
+  if (!list.length) html += '<p class="sub">No interviews or career events on this day.</p>';
+  list.forEach(e => {
+    html += '<div class="ev ' + e.type + '"><div class="head">' + icon(e.type) + esc(e.title) + "</div>" +
+      '<div class="sub">' + time(e.date) + " &middot; " + label(e.type) + " &middot; " + esc(e.detail) + "</div>" + statusLine(e) + reminderSelect(e) + prepHtml(e) +
+      '<label class="sub" for="n-' + e.id + '">Notes</label><textarea id="n-' + e.id + '" data-n="e:' + e.id + '" placeholder="Prep, questions to ask, contacts">' + esc(notes["e:" + e.id] || "") + "</textarea></div>";
+  });
+  $("panel").innerHTML = html;
+}
+
+/* ---- Wiring ----------------------------------------------------------- */
+function render() {
+  $("month").textContent = cursor.toLocaleDateString([], { month: "long", year: "numeric" });
+  $("vCal").setAttribute("aria-pressed", view === "calendar");
+  $("vAgenda").setAttribute("aria-pressed", view === "agenda");
+  view === "calendar" ? renderCalendar() : renderAgenda();
+  renderPanel();
+}
+function shift(n) { cursor = new Date(cursor.getFullYear(), cursor.getMonth() + n, 1); render(); }
+
+$("prev").onclick = () => shift(-1);
+$("next").onclick = () => shift(1);
+$("today").onclick = () => { cursor = new Date(now.getFullYear(), now.getMonth(), 1); render(); };
+$("panel").addEventListener("click", ev => {
+  if (ev.target.closest("[data-close]")) { selected = null; render(); }
+});
+$("vCal").onclick = () => { view = "calendar"; render(); };
+$("vAgenda").onclick = () => { view = "agenda"; render(); };
+
+$("main").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-k]");
+  if (b) { selected = b.dataset.k; render(); }
+});
+$("side").addEventListener("change", ev => {
+  const f = ev.target.dataset && ev.target.dataset.f;
+  if (f) { hidden[f] = !ev.target.checked; render(); }
+});
+$("eventSearch").addEventListener("input", ev => { filters.search = ev.target.value.trim().toLowerCase(); render(); });
+$("statusFilter").addEventListener("change", ev => { filters.status = ev.target.value; render(); });
+$("readinessFilter").addEventListener("change", ev => { filters.readiness = ev.target.value; render(); });
+$("panel").addEventListener("change", ev => {
+  const d = ev.target.dataset || {};
+  if (!d.taskEvent) return;
+  const e = events.find(x => x.id === d.taskEvent), t = e && e.tasks.find(x => x.id === d.taskId);
+  if (!t) return;
+  t.completed = ev.target.checked;
+  syncReadinessTask(e.applicationId, t.id, t.completed);
+  render();
+});
+$("panel").addEventListener("input", ev => {
+  const n = ev.target.dataset.n;
+  if (!n) return;
+  const v = ev.target.value.trim();
+  v ? notes[n] = ev.target.value : delete notes[n];
+  saveNotes();
+});
+$("panel").addEventListener("change", ev => {
+  const d = ev.target.dataset || {};
+  if (!d.rEvent) return;
+  const boxes = $("panel").querySelectorAll('input[data-r-event="' + d.rEvent + '"]');
+  const list = [...boxes].filter(b => b.checked).map(b => Number(b.dataset.rMins));
+  reminders[d.rEvent] = list;
+  saveReminders();
+  syncReminder(d.rEvent, list);
+  view === "calendar" ? renderCalendar() : renderAgenda();
+});
+$("panel").addEventListener("focusout", ev => {
+  if (ev.target.dataset && ev.target.dataset.n) { view === "calendar" ? renderCalendar() : renderAgenda(); }
+});
+
+/* In-page reminders: while this page is open, show a pop-up when a reminder time is reached.
+   Real delivery (email/push) belongs to the Notifications subsystem via syncReminder(). */
+const fired = {};
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 8000);
+  try { if ("Notification" in window && Notification.permission === "granted") new Notification(msg); } catch (e) {}
+}
+function checkReminders() {
+  const nowMs = Date.now();
+  events.forEach(e => {
+    const start = e.date.getTime();
+    if (nowMs >= start) return;
+    const due = remindersFor(e).filter(m => nowMs >= start - m * 60000 && !fired[e.id + ":" + m]).sort((x, y) => x - y);
+    if (!due.length) return;
+    due.forEach(m => { fired[e.id + ":" + m] = true; });
+    const mins = Math.max(1, Math.round((start - nowMs) / 60000));
+    const when = mins >= 120 ? Math.round(mins / 60) + " hours" : mins >= 60 ? "1 hour" : mins + " minutes";
+    toast("Reminder: " + e.title + " starts in " + when + " (" + time(e.date) + ")");
+  });
+}
+$("panel").addEventListener("change", ev => {
+  if (ev.target.dataset && ev.target.dataset.rEvent && ev.target.checked && "Notification" in window && Notification.permission === "default") {
+    try { Notification.requestPermission(); } catch (e) {}
+  }
+});
+setInterval(checkReminders, 30000);
+
+render();
+checkReminders();
+getCalendarEvents(USER_ID)
+  .then(list => { events = prep(list); $("dataWarning").hidden = true; render(); syncDefaultReminders(); })
+  .catch(() => { $("dataWarning").hidden = false; /* sample data stays visible, clearly labelled */ });
+</script>
+</body>
+</html>
