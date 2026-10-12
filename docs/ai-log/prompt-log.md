@@ -24,6 +24,18 @@ Process: The initial Docker image built successfully, but the container did not 
 
 **Prompt:** "Can you help me understand the Week 4 software architecture requirements and check if my Layered Architecture choice and component sketch cover what is required?"
 
+
+## Dashboard — AI Prompt Log
+
+### 2026-10-10: Dashboard front-end (index.html, dashboard.css, dashboard.js, mock-data.js)
+
+**AI Tool:** Claude
+
+**Asked:** I gave Claude the team's user stories and asked for Jira subtasks for the dashboard story, then asked for a front-end with application tracker columns by stage, the readiness checklist, upcoming interviews, and buttons to switch between interview and calendar views.
+
+**Produced:** A page with four stage columns (In Progress, Applied, Interview, Offer), an upcoming-interviews list, a readiness checklist with completion percentage, and Interviews and Calendar views. It uses mock data kept in a separate file, so the data functions can later be replaced with calls to the Java backend.
+
+**Changed or rejected:** I placed the files in app/main/resources/static/dashboard. When I first opened the page it was blank. The cause was that my file was named mock_data.js while index.html loads mock-data.js. I renamed it and the page worked. Moreover, I was not a big fan of the color palette it generated, so had to change the design a little bit. The data is mock data only, since the backend is not connected yet.
 ### 2026-10-08 — Migrating Docker Setup from Python to Java
 
 **Asked:**
@@ -84,3 +96,20 @@ ChatGPT suggested:
 **Produced:** A menu-driven program that allows users to add applications, view applications, update statuses, and add notes.
 
 **Changed or rejected:** Replaced the original single-application interaction with a repeating menu. Kept the console interface for testing the application logic before implementing the web UI.
+
+
+
+## October 11, 2026
+
+**AI Tool:** Claude
+
+**Use:** I gave Claude a description of the readiness checklist and asked Claude to create a basic setup for a project that had barely been in development. 
+
+**Produced:** Claude created three files; Checklist.java, ChecklistItem.java, and ChecklistMenu.java . 
+
+**Accepted or Rejected:** There were a lot of comments and fluff that I had to remove becuase it was talking about different packages. Everything else was left untouched and the files were added.
+
+**Prompt:** I want to create a function for the checklist. this is the description : "Readiness checklist: A personal checklist analogous to a pre-flight check for the job search: resume drafted, resume reviewed, LinkedIn profile updated, elevator pitch practiced, target company list built, references identified, portfolio/GitHub current, mock interview completed, etc. Checklist items are configurable by Career Services staff as a default template; students can mark items complete and add their own custom items. No actual document upload or resume storage, status tracking and optional external links only. " create the code that would help create a "resume template" that every user will have by default to fill out.
+
+
+
