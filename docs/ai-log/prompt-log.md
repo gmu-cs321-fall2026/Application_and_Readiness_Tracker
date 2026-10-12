@@ -96,3 +96,20 @@ ChatGPT suggested:
 **Produced:** A menu-driven program that allows users to add applications, view applications, update statuses, and add notes.
 
 **Changed or rejected:** Replaced the original single-application interaction with a repeating menu. Kept the console interface for testing the application logic before implementing the web UI.
+
+
+
+## October 11, 2026
+
+**AI Tool:** Claude
+
+**Use:** I gave Claude a description of the readiness checklist and asked Claude to create a basic setup for a project that had barely been in development. 
+
+**Produced:** Claude created three files; Checklist.java, ChecklistItem.java, and ChecklistMenu.java . 
+
+**Accepted or Rejected:** There were a lot of comments and fluff that I had to remove becuase it was talking about different packages. Everything else was left untouched and the files were added.
+
+**Prompt:** I want to create a function for the checklist. this is the description : "Readiness checklist: A personal checklist analogous to a pre-flight check for the job search: resume drafted, resume reviewed, LinkedIn profile updated, elevator pitch practiced, target company list built, references identified, portfolio/GitHub current, mock interview completed, etc. Checklist items are configurable by Career Services staff as a default template; students can mark items complete and add their own custom items. No actual document upload or resume storage, status tracking and optional external links only. " create the code that would help create a "resume template" that every user will have by default to fill out.
+
+
+

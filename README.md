@@ -15,6 +15,7 @@ The subsystem is designed to support:
 - Supporting calendar-based readiness tracking
 - Maintaining application and readiness information in the shared application database
 
+
 There are 5 features within this subsystem: 
 - Application Tracker
 - Readiness Checklist
@@ -53,3 +54,5 @@ docker run -it --rm application-tracker
 ```
 
 The application currently runs through a console menu. The web interface, API integration, and shared database are planned for future development.
+
+
