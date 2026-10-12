@@ -1,18 +1,28 @@
-┌──────────────────┐
-│   Web Browser    │
-│ HTML / JavaScript│
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│  FastAPI Backend │
-│    API / Logic   │
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│ Data Access Layer│
-└────────┬─────────┘
-         ↓
-┌──────────────────┐
-│    PostgreSQL    │
-│  Shared Database │
-└──────────────────┘
+┌──────────────────────────────┐           ┌──────────────────┐
+│         Web Browser          │◄─ login ──│   Shared Core    │
+│      HTML / JavaScript       │           │  Auth, profiles  │
+└──────────────┬───────────────┘           └──────────────────┘
+               │
+               ↓  REST / JSON
+┌──────────────────────────────┐           ┌──────────────────┐
+│       REST Controllers       │◄ /upcoming│  Notifications   │
+│ Apps · Checklist · Calendar  │           │ Sends reminders  │
+└──────────────┬───────────────┘           └──────────────────┘
+               │
+               ↓
+┌──────────────────────────────┐           ┌──────────────────┐
+│        Service Layer         │◄─ events ─│      Events      │
+│Stages · Readiness · Calendar │           │Registered events │
+└──────────────┬───────────────┘           └──────────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│      Data Access Layer       │
+│       Spring Data JPA        │
+└──────────────┬───────────────┘
+               │
+               ↓
+┌──────────────────────────────┐
+│          PostgreSQL          │
+│       Shared Database        │
+└──────────────────────────────┘
