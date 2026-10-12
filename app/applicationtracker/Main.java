@@ -28,7 +28,8 @@ public class Main {
             System.out.println("2. View Applications");
             System.out.println("3. Update Application Status");
             System.out.println("4. Add Notes");
-            System.out.println("5. Exit");
+            System.out.println("5. Readiness Checklist");
+            System.out.println("6. Exit");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine();
@@ -39,7 +40,8 @@ public class Main {
                     case "2" -> viewApplications();
                     case "3" -> updateApplication();
                     case "4" -> addNotes();
-                    case "5" -> running = false;
+                    case "5" -> ChecklistMenu.show(scanner);
+                    case "6" -> running = false;
                     default -> System.out.println("Invalid option.");
                 }
             } catch (IllegalArgumentException | IllegalStateException e) {
