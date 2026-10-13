@@ -3,6 +3,7 @@
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -160,5 +161,37 @@ public class ApplicationTracker {
         }
 
         return result;
+    }
+
+    // Adds an interview round to an application
+    public InterviewRound addInterviewRound(
+            String id,
+            LocalDateTime scheduledAt,
+            InterviewFormat format,
+            InterviewType type) {
+
+        Application application = findById(id);
+
+        // Rounds only make sense while the application is in the Interview stage
+        if (application.getStatus() != ApplicationStatus.INTERVIEW) {
+            throw new IllegalStateException(
+                    "Interview rounds can only be added when the status is INTERVIEW.");
+        }
+
+        return application.addInterviewRound(scheduledAt, format, type);
+    }
+
+    // Returns all interview rounds for an application
+    public List<InterviewRound> getInterviewRounds(String id) {
+        return findById(id).getInterviewRounds();
+    }
+
+    // Adds notes to one interview round
+    public void addInterviewNotes(String id, int roundNumber, String notes) {
+        InterviewRound round = findById(id)
+                .getInterviewRound(roundNumber)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Interview round not found."));
+        round.appendNotes(notes);
     }
 }
