@@ -3,6 +3,12 @@
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 // Represents a single job or internship application
@@ -19,6 +25,9 @@ public class Application {
     private LocalDate deadline;
     private String notes;
     private ApplicationStatus status;
+
+    // All interview rounds for this application
+    private final List<InterviewRound> interviewRounds = new ArrayList<>();
 
     // Constructor creates a new application
     public Application(String employerName, String roleTitle,
@@ -98,6 +107,32 @@ public class Application {
     // Updates status; tracker validates transitions first
     void setStatus(ApplicationStatus status) {
         this.status = status;
+    }
+
+    // Adds a new interview round; round numbers go 1, 2, 3...
+    public InterviewRound addInterviewRound(
+            LocalDateTime scheduledAt,
+            InterviewFormat format,
+            InterviewType type) {
+
+        InterviewRound round = new InterviewRound(
+                interviewRounds.size() + 1, scheduledAt, format, type);
+        interviewRounds.add(round);
+        return round;
+    }
+
+    // Returns interview rounds sorted by date (read-only copy)
+    public List<InterviewRound> getInterviewRounds() {
+        List<InterviewRound> sorted = new ArrayList<>(interviewRounds);
+        sorted.sort(Comparator.comparing(InterviewRound::getScheduledAt));
+        return Collections.unmodifiableList(sorted);
+    }
+
+    // Finds an interview round by its number
+    public Optional<InterviewRound> getInterviewRound(int roundNumber) {
+        return interviewRounds.stream()
+                .filter(r -> r.getRoundNumber() == roundNumber)
+                .findFirst();
     }
 
     // Controls how application details are displayed
