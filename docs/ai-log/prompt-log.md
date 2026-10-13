@@ -112,4 +112,30 @@ ChatGPT suggested:
 **Prompt:** I want to create a function for the checklist. this is the description : "Readiness checklist: A personal checklist analogous to a pre-flight check for the job search: resume drafted, resume reviewed, LinkedIn profile updated, elevator pitch practiced, target company list built, references identified, portfolio/GitHub current, mock interview completed, etc. Checklist items are configurable by Career Services staff as a default template; students can mark items complete and add their own custom items. No actual document upload or resume storage, status tracking and optional external links only. " create the code that would help create a "resume template" that every user will have by default to fill out.
 
 
+## Interview Round Tracking 
+
+**Date:** Oct 12-13, 2026
+**AI tool:** Claude (Anthropic)
+
+**What I asked for:** I shared the Subsystem 2 description, my user story and acceptance criteria, and our existing Application.java, ApplicationTracker.java, Main.java, and ApplicationStatus.java, and asked for code for my story that fit our existing design.
+
+**What the AI produced:** InterviewRound, InterviewFormat, InterviewType, and
+InterviewMenu classes; additions to Application.java and ApplicationTracker.java;
+small edits to Main.java; and instructions for the Git workflow.
+
+**What I did:**
+- Reviewed the AI's code against our existing classes and the state machine,
+  including the rule that rounds can only be added at INTERVIEW status.
+- Updated my local copy when teammates' changes (the Readiness Checklist)
+  changed Main.java, so my menu option was added without breaking theirs.
+- Compiled and ran the program, and tested each acceptance criterion: adding
+  rounds, date/time, format, type, notes, and multiple rounds per application.
+- Tested error cases, such as adding a round before the status was INTERVIEW,
+  entering a wrong application ID, and entering a nonexistent round number.
+- Created a feature branch, committed, fixed my commit author, and resolved
+  GitHub authentication problems to push the branch.
+- Opened PR #5, confirmed there were no merge conflicts, merged it into main,
+  and verified main still compiled and ran with my teammates' code.
+- Told my team about the menu renumbering (Exit moved from 6 to 7).
+
 
