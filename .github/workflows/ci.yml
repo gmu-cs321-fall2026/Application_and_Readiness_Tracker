@@ -1,0 +1,45 @@
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: lint-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Compile Java
+        run: |
+          mkdir -p out
+          javac -d out app/applicationtracker/*.java tests/ApplicationTrackerTest.java
+
+      - name: Download Checkstyle
+        run: |
+          curl -fL --retry 3 \
+            -o checkstyle.jar \
+            https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.21.4/checkstyle-10.21.4-all.jar
+
+      - name: Lint with Checkstyle
+        run: |
+          java -jar checkstyle.jar \
+            -c config/checkstyle.xml \
+            app/applicationtracker/*.java \
+            tests/ApplicationTrackerTest.java
+
+      - name: Run automated tests
+        run: |
+          java -cp out ApplicationTrackerTest
