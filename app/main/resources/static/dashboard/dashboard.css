@@ -35,3 +35,5 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .chip{display:block;font-size:.75rem;padding:1px 4px;margin-top:2px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .iv{background:var(--goldbg);color:var(--gold)}.ev{background:var(--accentbg);color:var(--accent)}
 .hide{display:none}
+.navlink{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 14px;text-decoration:none}
+.navlink:hover{border-color:var(--accent)}
