@@ -154,3 +154,15 @@ small edits to Main.java; and instructions for the Git workflow.
 - Told my team about the menu renumbering (Exit moved from 6 to 7).
 
 
+## October 20, 2026
+
+**AI Tool:** Claude
+
+**Use:** Sprint 3 requires every story to ship with an automated test, so I asked Claude to help me write tests for my interview round feature (from Sprint 2). I gave it the Week 8 syllabus, my Sprint 3 story (Interview Management), and a screenshot of our existing ApplicationTrackerTest.java so the new tests would match our team's style (plain Java, a main method, PASS messages, and AssertionError on failure, with no JUnit).
+
+**Produced:** Claude wrote InterviewRoundTest.java with 9 tests: round numbering, rounds only allowed at INTERVIEW status, required fields, round number boundaries, notes appending, sorting by date, round lookup boundaries, unknown application IDs, and the upcoming-interview check.
+
+**Accepted or Rejected:** I used the test structure as written because it matches our existing test file. [Fill in after you've run it: whether all tests passed on my machine, whether CI ran the file, and any lint or style changes I had to make.]
+
+**Prompt:** I pasted the Week 8 Sprint 3 syllabus, my story (Interview Management), and a screenshot of tests/ApplicationTrackerTest.java, and asked for automated tests for my interview round code that fit how our team writes tests.
+
