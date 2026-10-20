@@ -25,6 +25,21 @@ Process: The initial Docker image built successfully, but the container did not 
 **Prompt:** "Can you help me understand the Week 4 software architecture requirements and check if my Layered Architecture choice and component sketch cover what is required?"
 
 
+### 2026-10-19 — GitHub Actions CI Setup
+
+**Asked:**  
+I asked ChatGPT to guide me through setting up GitHub Actions for our Java project, including automated linting, testing, and branch protection, while following the Sprint 3 assignment requirements.
+
+**Produced:**  
+ChatGPT provided a GitHub Actions CI workflow (`.github/workflows/ci.yml`), guidance for creating an automated Application Tracker test, Checkstyle configuration for Java linting, and instructions for creating a pull request and configuring branch protection rules.
+
+**Changed or rejected:**  
+I adapted the workflow to our existing Java project rather than using the Gradle starter workflow, since our application currently compiles directly with `javac`. I also used Java 17 to match our project's requirements.
+
+**Process:**  
+I created a separate feature branch, added an automated test for application creation, and configured the workflow to run linting and testing. I encountered a Checkstyle XML configuration error, which I corrected and verified locally. After committing and pushing the changes, I opened a pull request and confirmed that the `lint-and-test` check passed. I then merged the pull request into `main` and created an active `CI Protection` ruleset requiring pull requests and successful CI checks before merging future changes.
+
+
 ## Dashboard — AI Prompt Log
 
 ### 2026-10-10: Dashboard front-end (index.html, dashboard.css, dashboard.js, mock-data.js)
