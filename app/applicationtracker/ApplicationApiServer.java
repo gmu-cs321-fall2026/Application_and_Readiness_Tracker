@@ -26,6 +26,7 @@ public class ApplicationApiServer {
         server.createContext("/api/applications", ApplicationApiServer::handleApi);
         server.createContext("/", ApplicationApiServer::handleStatic);
 
+        ApplicationStorage.load(tracker);
         server.start();
 
         System.out.println("Application Tracker running at:");
@@ -63,6 +64,7 @@ public class ApplicationApiServer {
                     );
                     tracker.updateNotes(app.getId(), data.get("notes"));
 
+                    ApplicationStorage.save(allApplications());
                     send(exchange, 201, applicationJson(app), "application/json");
                     return;
                 }
@@ -116,6 +118,7 @@ public class ApplicationApiServer {
 
                 tracker.updateNotes(id, data.get("notes"));
 
+                ApplicationStorage.save(allApplications());
                 send(exchange, 200, applicationJson(app), "application/json");
                 return;
             }

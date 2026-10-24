@@ -15,7 +15,7 @@ import java.util.UUID;
 public class Application {
 
     // Each application has a unique identifier
-    private final String id;
+    private String id;
 
     // Information about the application
     private String employerName;
@@ -77,6 +77,15 @@ public class Application {
             throw new IllegalStateException("Initial status already assigned.");
         }
         this.status = initialStatus;
+    }
+
+
+    // Restore the original ID when loading an application from storage.
+    void restoreIdentity(String savedId) {
+        if (savedId == null || savedId.isBlank()) {
+            throw new IllegalArgumentException("Saved ID is required.");
+        }
+        this.id = savedId;
     }
 
     // Getter methods allow other classes to read application data
