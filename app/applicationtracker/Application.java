@@ -66,6 +66,19 @@ public class Application {
         this.notes = "";
     }
 
+
+    // Allows an initial status when an existing application is first recorded.
+    // Later status changes still follow ApplicationTracker's transition rules.
+    public void setInitialStatus(ApplicationStatus initialStatus) {
+        if (initialStatus == null) {
+            throw new IllegalArgumentException("Initial status is required.");
+        }
+        if (status != ApplicationStatus.PLANNED) {
+            throw new IllegalStateException("Initial status already assigned.");
+        }
+        this.status = initialStatus;
+    }
+
     // Getter methods allow other classes to read application data
     public String getId() {
         return id;
@@ -133,6 +146,24 @@ public class Application {
         return interviewRounds.stream()
                 .filter(r -> r.getRoundNumber() == roundNumber)
                 .findFirst();
+    }
+
+
+    // Updates editable application information.
+    public void updateDetails(String employerName, String roleTitle,
+            LocalDate applicationDate, String source, LocalDate deadline) {
+        if (employerName == null || employerName.trim().isEmpty()
+                || roleTitle == null || roleTitle.trim().isEmpty()
+                || applicationDate == null
+                || source == null || source.trim().isEmpty()) {
+            throw new IllegalArgumentException("Required fields cannot be empty.");
+        }
+
+        this.employerName = employerName.trim();
+        this.roleTitle = roleTitle.trim();
+        this.applicationDate = applicationDate;
+        this.source = source.trim();
+        this.deadline = deadline;
     }
 
     // Controls how application details are displayed
