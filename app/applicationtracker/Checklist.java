@@ -11,6 +11,10 @@ import java.util.List;
  */
 public class Checklist {
 
+    public List<ChecklistItem> getItems(){
+        return items;
+    }
+
     private List<ChecklistItem> items;
 
     public Checklist() {

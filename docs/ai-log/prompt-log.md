@@ -166,3 +166,22 @@ small edits to Main.java; and instructions for the Git workflow.
 
 **Prompt:** I pasted the Week 8 Sprint 3 syllabus, my story (Interview Management), and a screenshot of tests/ApplicationTrackerTest.java, and asked for automated tests for my interview round code that fit how our team writes tests.
 
+## ChecklistTest.java
+## October 27, 2026
+
+**Ai Tool:** 
+Claude
+
+**Use:**
+Claude was asked to create tests to ensure the checklist would not crash the application or update items incorrectly. Continued to maintin the format of other teammates; plain java file, pass/fail messages.
+
+
+**Produced:**
+Claude generated tests for ChecklistTest.java. The tests are meant to test if the checklist updates properly if items are added, whether checklist items are marked complete on click, whether they are marked incomplete if clicked twice, safety check if the user inputs an incorrect error.
+
+**Accepted or Rejected:**
+Files were tweaked slightly, there was a correction I manually made when connecting the Checklist.java file and ChecklistTest.java file.
+The rest of the file was accepted.
+
+**Prompt:** I provided ApplicationTrackerTests.java as an example of tests that needed to be created, and also included description of the checklist requirements.
+

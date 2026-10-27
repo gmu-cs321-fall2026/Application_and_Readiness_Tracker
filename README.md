@@ -39,6 +39,16 @@ javac -d out app/applicationtracker/*.java
 java -cp out Main
 ```
 
+### Running tests/
+
+javac -d out app/applicationtracker/*.java 
+javac -d out tests/*.java
+
+(can optionally put both paths from above on one line after javac -d out)
+
+java -cp out ChecklistTest
+
+
 ### Run with Docker
 
 Build the Docker image:
