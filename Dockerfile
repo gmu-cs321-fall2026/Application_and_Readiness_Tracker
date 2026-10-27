@@ -1,15 +1,14 @@
-
-# Use Java 17 to build and run the application
 FROM eclipse-temurin:17-jdk
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy Application Tracker Java files
 COPY app/applicationtracker/ ./applicationtracker/
+COPY app/main/resources/static/ ./app/main/resources/static/
 
-# Compile the Java source files
 RUN mkdir -p out && javac -d out applicationtracker/*.java
 
-# Run the Application Tracker console program
-CMD ["java", "-cp", "out", "Main"]
+RUN mkdir -p data
+
+EXPOSE 8080
+
+CMD ["java", "-cp", "out", "ApplicationApiServer"]

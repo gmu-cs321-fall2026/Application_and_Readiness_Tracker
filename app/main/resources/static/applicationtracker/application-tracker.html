@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Application Tracker</title>
+
+  <!-- Match Daria's Dashboard typography and styles -->
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../dashboard/dashboard.css">
+  <link rel="stylesheet" href="application-tracker.css">
+</head>
+
+<body>
+  <main>
+    <h1>Application Tracker</h1>
+    <p class="sub">Manage your job applications in one place.</p>
+
+    <!-- Shared navigation -->
+    <nav aria-label="Views">
+      <a class="navlink" href="../dashboard/index.html">Dashboard</a>
+      <a class="navlink" href="../calendar/calendar_view.html">Calendar</a>
+      <button type="button" aria-pressed="true">
+        Application Tracker
+      </button>
+    </nav>
+
+    <!-- Add application -->
+    <div class="tracker-actions">
+      <button id="addApplicationBtn" type="button" class="primary-btn">
+        + Add Application
+      </button>
+    </div>
+
+    <!-- Add/Edit form, hidden until needed -->
+    <section id="applicationFormPanel" class="panel form-panel hide">
+      <h2 id="formTitle">Add New Application</h2>
+
+      <form id="applicationForm">
+        <div class="form-grid">
+          <label>
+            Company *
+            <input id="employer" type="text" required>
+          </label>
+
+          <label>
+            Position *
+            <input id="role" type="text" required>
+          </label>
+
+          <label>
+            Application Date *
+            <input id="applicationDate" type="date" required>
+          </label>
+
+          <label>
+            Source *
+            <input id="source" type="text"
+                   placeholder="LinkedIn, Handshake, etc." required>
+          </label>
+
+          <label>
+            Deadline (optional)
+            <input id="deadline" type="date">
+          </label>
+
+          <label>
+            Status
+            <select id="status">
+              <option value="PLANNED">Planned</option>
+              <option value="IN_PROGRESS">Preparing Application</option>
+              <option value="APPLIED">Applied</option>
+              <option value="ONLINE_ASSESSMENT">Online Assessment</option>
+              <option value="PHONE_SCREEN">Phone Screen</option>
+              <option value="INTERVIEW">Interview</option>
+              <option value="OFFER">Offer Received</option>
+              <option value="ACCEPTED">Accepted</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="WITHDRAWN">Withdrawn</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Notes (optional)
+          <textarea id="notes" rows="3"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button id="cancelApplicationBtn" type="button">Cancel</button>
+          <button type="submit" class="primary-btn" id="saveApplicationBtn">
+            Save Application
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Three application sections -->
+    <section class="tracker-board" aria-label="Applications by status">
+
+      <div class="col">
+        <h3>
+          Plan to Apply
+          <span class="count" id="plannedCount">0</span>
+        </h3>
+        <div id="plannedApplications">
+          <p class="mute">No applications yet.</p>
+        </div>
+      </div>
+
+      <div class="col">
+        <h3>
+          Applied
+          <span class="count" id="appliedCount">0</span>
+        </h3>
+        <div id="appliedApplications">
+          <p class="mute">No applications yet.</p>
+        </div>
+      </div>
+
+      <div class="col">
+        <h3>
+          Past Applications
+          <span class="count" id="pastCount">0</span>
+        </h3>
+        <div id="pastApplications">
+          <p class="mute">No applications yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Full application details -->
+    <section id="detailsPanel" class="panel details-panel hide"
+             aria-labelledby="detailsTitle">
+      <div class="details-header">
+        <div>
+          <h2 id="detailsTitle">Application Details</h2>
+          <p id="detailsSubtitle" class="mute"></p>
+        </div>
+        <button id="closeDetailsBtn" type="button">Close</button>
+      </div>
+
+      <div id="detailsContent"></div>
+
+      <div class="form-actions">
+        <button id="editApplicationBtn" type="button" class="primary-btn">
+          Edit Application
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="application-tracker.js"></script>
+</body>
+</html>

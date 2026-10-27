@@ -32,3 +32,6 @@ build/
 
 # Ignore VS Code local settings
 .vscode/
+# Local Application Tracker data and backups
+/data/
+*.java.bak
