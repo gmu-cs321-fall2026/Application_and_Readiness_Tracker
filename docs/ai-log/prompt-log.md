@@ -113,6 +113,17 @@ ChatGPT suggested:
 **Changed or rejected:** Replaced the original single-application interaction with a repeating menu. Kept the console interface for testing the application logic before implementing the web UI.
 
 
+### 5. Application Tracker Frontend, Backend, and Integration - 10/23
+
+**Asked:** I asked ChatGPT to help me develop a complete frontend for my Application Tracker, connect it to our existing Java backend, implement persistent storage, and integrate my subsystem with the Dashboard and Calendar View. I wanted everything to work together while keeping the design consistent with our team's project and avoiding unnecessary changes to my teammates' code.
+
+**Produced:** ChatGPT helped me create the Application Tracker frontend using HTML, CSS, and JavaScript. The interface organizes applications into three categories: Plan to Apply, Applied, and Past Applications. It also allows users to add applications, view their details, edit information, and update statuses. We connected the frontend to the Java backend using `ApplicationApiServer.java` and REST API endpoints. I then implemented file-based storage using `ApplicationStorage.java`, allowing applications to remain saved after restarting the server. For integration, I added a JavaScript file that displays real application counts on Daria's Dashboard and connected application deadlines to Harshita's existing Calendar View.
+
+**Changed or rejected:** I made several adjustments throughout development to improve the functionality and integration. I changed the application creation process so users could select an initial status instead of always starting with Planned. I also chose to integrate with Harshita's existing calendar rather than creating a separate one. To avoid interfering with my teammates' work, I kept Daria's original Dashboard scripts unchanged and created a separate integrated copy of Harshita's calendar. I also requested terminal commands and explanations so I could understand and implement each change myself.
+
+**Final result:** I developed a functional Application Tracker subsystem with a frontend, Java API, persistent storage, and connections to the Dashboard and Calendar. The main accomplishment was turning the Application Tracker from a standalone feature into a subsystem that can share real application data with other parts of our team's project.
+
+
 
 ## October 11, 2026
 
