@@ -186,7 +186,8 @@ if (window.self !== window.top) document.documentElement.classList.add("embedded
 
 /* ---- State ------------------------------------------------------------ */
 const $ = id => document.getElementById(id);
-const USER_ID = "me"; // replace with the logged-in user's id
+const USER_ID = "7"; // Temporary Subsystem 3 test user
+const EVENTS_API_TOKEN = "student-token"; // Temporary test token only
 const prep = list => list.map(e => ({ ...e, date: new Date(e.start) })).sort((a, b) => a.date - b.date);
 
 /* Merges interviews (our subsystem) with registered career events (Events & Resources).
@@ -198,7 +199,15 @@ const mapInterview = a => ({
   status: a.status || "interview", applicationUrl: a.applicationUrl || "",
   tasks: Array.isArray(a.readinessTasks) ? a.readinessTasks : []
 });
-const mapCareerEvent = e => ({ id: "e" + e.id, type: "event", title: e.name, start: e.startTime, detail: e.location || "" });
+const mapCareerEvent = e => ({
+  id: "e" + e.id,
+  type: "event",
+  title: e.eventTitle || "Untitled career event",
+  start: e.date && e.time
+    ? e.date + "T" + e.time + ":00"
+    : (e.startTime || e.datetime),
+  detail: e.location || ""
+});
 
 /* start / datetime / startTime must be ISO strings WITH a timezone offset (e.g. 2026-10-14T14:30:00-04:00),
    otherwise events can land on the wrong day. If one source fails, the other still loads. */
@@ -210,8 +219,11 @@ async function getCalendarEvents(userId) {
     fetch("/api/applications").then(checkResponse).then(r => r.json()),
     fetch("/applications/" + id + "/upcoming")
       .then(checkResponse).then(r => r.json()),
-    fetch("/events/" + id + "/registered")
-      .then(checkResponse).then(r => r.json())
+    fetch("/users/" + id + "/events/registered", {
+      headers: {
+        "Authorization": "Bearer " + EVENTS_API_TOKEN
+      }
+    }).then(checkResponse).then(r => r.json())
   ]);
 
   if (results.every(r => r.status === "rejected")) {
@@ -224,8 +236,15 @@ async function getCalendarEvents(userId) {
   const interviews = results[1].status === "fulfilled"
     ? results[1].value : [];
 
-  const careerEvents = results[2].status === "fulfilled"
-    ? results[2].value : [];
+  const eventResponse = results[2].status === "fulfilled"
+  ? results[2].value
+  : [];
+
+const careerEvents = Array.isArray(eventResponse)
+  ? eventResponse
+  : (Array.isArray(eventResponse.items)
+      ? eventResponse.items
+      : []);
 
   const deadlines = applications
     .filter(app => app.deadline)
