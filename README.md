@@ -56,10 +56,10 @@ javac -d out app/applicationtracker/*.java tests/*.java
 2. Run
 
 ```bash
-java -cp out [file name].java
+java -cp out [file name]
 ```
 
-ex: javac -cp out ChecklistTest.java
+ex: java -cp out ChecklistTest
 
 
 ### Run with Docker

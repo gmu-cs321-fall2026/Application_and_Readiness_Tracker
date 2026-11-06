@@ -44,5 +44,28 @@ public class ChecklistTest {
         System.out.println("PASS: custom item added");
 
         System.out.println("\nAll checklist tests passed.");
+
+        // custom items can be removed, defaults cannot
+        checklist.addCustomItem("Temp item");
+        int lastNumber = checklist.getItems().size();
+        if (!checklist.removeItem(lastNumber).equals("REMOVED")) {
+            throw new AssertionError("Test failed: custom item should be removable.");
+        }
+        if (!checklist.removeItem(1).equals("NOT_CUSTOM")) {
+            throw new AssertionError("Test failed: default item should not be removable.");
+        }
+        System.out.println("PASS: remove rules work");
+
+        // setting a link works, invalid number is rejected
+        if (!checklist.setItemLink(1, "https://linkedin.com/in/me")) {
+            throw new AssertionError("Test failed: should set link on valid item.");
+        }
+        if (checklist.getItems().get(0).getExternalLink() == null) {
+            throw new AssertionError("Test failed: link was not stored.");
+        }
+        if (checklist.setItemLink(999, "x")) {
+            throw new AssertionError("Test failed: invalid number should return false.");
+        }
+        System.out.println("PASS: external link set/validate works");
     }
 }

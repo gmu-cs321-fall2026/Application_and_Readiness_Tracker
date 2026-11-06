@@ -93,4 +93,19 @@ public class Checklist {
         items.remove(index);
         return "REMOVED";
     }
+
+        /**
+     * Sets (or clears) the external link on the item chosen by the number shown
+     * in printItems(). Pass null to clear the link. Works on any item, since a
+     * student may want to link, e.g., their LinkedIn to the "LinkedIn" item.
+     * Returns false if the number isn't valid.
+     */
+    public boolean setItemLink(int displayNumber, String link) {
+        int index = displayNumber - 1;                 // convert to list index
+        if (index < 0 || index >= items.size()) {
+            return false;
+        }
+        items.get(index).setExternalLink(link);
+        return true;
+    }
 }
