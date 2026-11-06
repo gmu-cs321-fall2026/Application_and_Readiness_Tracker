@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Readiness Checklist</title>
+
+  <!-- Match the Dashboard typography and styles (same as the Application Tracker page) -->
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../dashboard/dashboard.css">
+  <link rel="stylesheet" href="checklist.css">
+</head>
+
+<body>
+  <main>
+    <h1>Readiness Checklist</h1>
+    <p class="sub">Your job-search pre-flight checklist.</p>
+
+    <!-- Shared navigation (mirrors application-tracker.html) -->
+    <nav aria-label="Views">
+      <a class="navlink" href="../dashboard/index.html">Dashboard</a>
+      <a class="navlink" href="../calendar/calendar_view.html">Calendar</a>
+      <a class="navlink" href="../applicationtracker/application-tracker.html">Application Tracker</a>
+      <button type="button" aria-pressed="true">Readiness Checklist</button>
+    </nav>
+
+    <!-- Progress summary -->
+    <section class="panel progress-panel">
+      <div class="progress-head">
+        <span id="progressLabel">0 of 0 complete</span>
+        <span id="progressPct" class="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <!-- Add a custom item -->
+    <div class="tracker-actions">
+      <input id="newItemTitle" type="text" placeholder="Add your own item...">
+      <button id="addItemBtn" type="button" class="primary-btn">+ Add Item</button>
+    </div>
+
+    <!-- The checklist itself (rendered by checklist.js) -->
+    <section id="checklist" class="checklist" aria-label="Checklist items"></section>
+  </main>
+
+  <script src="checklist.js"></script>
+</body>
+</html>

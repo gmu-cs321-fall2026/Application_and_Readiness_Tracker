@@ -240,5 +240,18 @@ Created functions for marking all complete, resetting the checklist, renaming a 
 **Accepted or Rejected:** 
 Accepted the created functions and tests. no changes needed to be made, everything ran and compiled easily.
 
+## /checklist/
+
+**AI tool:** Claude
+
+**Use:** 
+Needed to create a front end for the checklist files and needed to integrate them with the dashboard and other features
+
+**Produced:**
+created the html,css, and js files for the checklist that were connected to the dashboard. There was some connection issues when loading the dashboard, but claude was able to figure out the issue (small fix)
+
+**Accepted or Rejected:** 
+Accepted all files and made small tweaks to index.html in dashboard to fix the checklist button not appearing and the calendar not linking properly.
+
 ----
 
