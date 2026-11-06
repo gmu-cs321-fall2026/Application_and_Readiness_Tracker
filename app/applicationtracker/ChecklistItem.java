@@ -45,6 +45,10 @@ public class ChecklistItem {
         this.externalLink = externalLink;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     /**
      * Builds a readable line for the console, e.g.:
      *   [x] Resume drafted (Documents)
