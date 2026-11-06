@@ -21,7 +21,10 @@ public class ChecklistMenu {
             System.out.println("  3. Add my own item");
             System.out.println("  4. Remove a custom item");
             System.out.println("  5. Add / edit a link");
-            System.out.println("  6. Back to main menu");
+            System.out.println("  6. Rename a custom item");
+            System.out.println("  7. Mark all items complete");
+            System.out.println("  8. Reset all items to incomplete");
+            System.out.println("  9. Back to main menu");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
@@ -93,13 +96,48 @@ public class ChecklistMenu {
                         System.out.println("Please enter a number.");
                     }
                     break;
-
                 case "6":
-                    running = false; // leaves the while loop, returns to Main
+                    System.out.print("Enter the number of the custom item to rename: ");
+                    String renameNumInput = scanner.nextLine().trim();
+                    try {
+                        int number = Integer.parseInt(renameNumInput);
+                        System.out.print("Enter the new title: ");
+                        String newTitle = scanner.nextLine().trim();
+                        String result = checklist.renameItem(number, newTitle);
+                        switch (result) {
+                            case "RENAMED":
+                                System.out.println("Item renamed.");
+                                break;
+                            case "NOT_CUSTOM":
+                                System.out.println("That's a default item — you can only rename items you added.");
+                                break;
+                            case "EMPTY":
+                                System.out.println("Title can't be empty.");
+                                break;
+                            default: // "INVALID"
+                                System.out.println("That isn't a valid item number.");
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Please enter a number.");
+                    }
+                    break;
+
+                case "7":
+                    checklist.markAllComplete();
+                    System.out.println("All items marked complete.");
+                    break;
+
+                case "8":
+                    checklist.resetAll();
+                    System.out.println("All items reset to incomplete.");
+                    break;
+
+                case "9":
+                    running = false;
                     break;
 
                 default:
-                    System.out.println("Unknown option -- please type 1, 2, 3, 4, 5 or 6.");
+                    System.out.println("Unknown option -- please type a number 1 through 9.");
             }
         }
     }

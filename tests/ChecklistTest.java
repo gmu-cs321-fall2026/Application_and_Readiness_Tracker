@@ -67,5 +67,20 @@ public class ChecklistTest {
             throw new AssertionError("Test failed: invalid number should return false.");
         }
         System.out.println("PASS: external link set/validate works");
+
+        checklist.addCustomItem("Tpyo");
+        int n = checklist.getItems().size();
+        if (!checklist.renameItem(n, "Fixed title").equals("RENAMED")) {
+            throw new AssertionError("Test failed: custom rename should work.");
+        }
+        checklist.markAllComplete();
+        if (!checklist.getItems().get(0).isDone()) {
+            throw new AssertionError("Test failed: markAllComplete should complete items.");
+        }
+        checklist.resetAll();
+        if (checklist.getItems().get(0).isDone()) {
+            throw new AssertionError("Test failed: resetAll should clear items.");
+        }
+        System.out.println("PASS: rename and mark-all/reset work");
     }
 }

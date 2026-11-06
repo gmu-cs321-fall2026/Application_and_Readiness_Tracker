@@ -108,4 +108,39 @@ public class Checklist {
         items.get(index).setExternalLink(link);
         return true;
     }
+
+    /**
+     * Renames a custom item chosen by the number shown in printItems().
+     * Only custom items can be renamed. Returns a status code:
+     *   "RENAMED", "NOT_CUSTOM", "INVALID" (bad number), or "EMPTY" (blank title).
+     */
+    public String renameItem(int displayNumber, String newTitle) {
+        int index = displayNumber - 1;
+        if (index < 0 || index >= items.size()) {
+            return "INVALID";
+        }
+        if (newTitle == null || newTitle.trim().isEmpty()) {
+            return "EMPTY";
+        }
+        ChecklistItem item = items.get(index);
+        if (!"Custom".equals(item.getCategory())) {
+            return "NOT_CUSTOM";                        // protect default items
+        }
+        item.setTitle(newTitle);
+        return "RENAMED";
+    }
+
+    /** Marks every item complete. */
+    public void markAllComplete() {
+        for (ChecklistItem item : items) {
+            item.setDone(true);
+        }
+    }
+
+    /** Resets every item back to incomplete. */
+    public void resetAll() {
+        for (ChecklistItem item : items) {
+            item.setDone(false);
+        }
+    }
 }

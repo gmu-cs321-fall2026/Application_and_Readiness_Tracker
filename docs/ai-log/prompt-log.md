@@ -226,5 +226,19 @@ toRemove function and updates to the switch statement. Also created functions fo
 **Accepted or Rejected:** 
 Accepted the files and created functions for the remove function.
 
+
+## checklist.java, checklistMenu
+
+**AI tool:** Claude
+
+**Use:** 
+Update checklist for smaller "quality of life" functionality; marking ALL as complete or all as incomplete. able to rename an item if it gets misspelled.
+
+**Produced:**
+Created functions for marking all complete, resetting the checklist, renaming a custom item. tests were also created for each function
+
+**Accepted or Rejected:** 
+Accepted the created functions and tests. no changes needed to be made, everything ran and compiled easily.
+
 ----
 
