@@ -41,12 +41,24 @@ java -cp out Main
 
 ### Running tests/
 
+1. compile 
+
+```bash
 javac -d out app/applicationtracker/*.java 
 javac -d out tests/*.java
+```
+(can optionally put both paths from above on one line after javac -d out):
 
-(can optionally put both paths from above on one line after javac -d out)
+```bash
+javac -d out app/applicationtracker/*.java tests/*.java 
+```
 
+2. Run
+
+```bash
 java -cp out [file name].java
+```
+
 ex: javac -cp out ChecklistTest.java
 
 

@@ -64,12 +64,4 @@ public class ChecklistMenu {
         }
     }
 
-    // --- Optional: lets you run THIS file by itself to test the checklist ---
-    // Remove this once it's wired into the real Main, so you don't have two
-    // // main() methods fighting over which one runs.
-    // public static void main(String[] args) {
-    //     Scanner scanner = new Scanner(System.in);
-    //     show(scanner);
-    //     scanner.close();
-    // }
 }
