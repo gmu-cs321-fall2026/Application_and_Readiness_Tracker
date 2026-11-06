@@ -218,13 +218,13 @@ I asked Claude to help create a sidebar type layout
 **AI tool:** Claude
 
 **Use:** 
-to update the checklist functionality to remove only custom items, not the default template.
+to update the checklist functionality to remove only custom items, not the default template. Also need functionality for links, so that was also asked
 
 **Produced:**
-toRemove function and updates to the switch statement
+toRemove function and updates to the switch statement. Also created functions for linking things and being able to add them to specific items. Tests were created to test both of these functions and ensure no crashing could happen.
 
 **Accepted or Rejected:** 
-Accepted the files and created functions for the remove function
+Accepted the files and created functions for the remove function.
 
 ----
 

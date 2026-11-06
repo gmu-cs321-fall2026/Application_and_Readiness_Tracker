@@ -20,7 +20,8 @@ public class ChecklistMenu {
             System.out.println("  2. Mark an item complete / incomplete");
             System.out.println("  3. Add my own item");
             System.out.println("  4. Remove a custom item");
-            System.out.println("  5. Back to main menu");
+            System.out.println("  5. Add / edit a link");
+            System.out.println("  6. Back to main menu");
             System.out.print("Choose an option: ");
 
             String choice = scanner.nextLine().trim();
@@ -74,13 +75,31 @@ public class ChecklistMenu {
                         System.out.println("Please enter a number.");
                     }
                     break;
-
                 case "5":
+                    System.out.print("Enter the item number to add a link to: ");
+                    String linkNumInput = scanner.nextLine().trim();
+                    try {
+                        int number = Integer.parseInt(linkNumInput);
+                        System.out.print("Enter the link (or leave blank to clear it): ");
+                        String link = scanner.nextLine().trim();
+                        // blank input clears the link (null); otherwise store what they typed
+                        boolean ok = checklist.setItemLink(number, link.isEmpty() ? null : link);
+                        if (ok) {
+                            System.out.println(link.isEmpty() ? "Link cleared." : "Link saved.");
+                        } else {
+                            System.out.println("That isn't a valid item number.");
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Please enter a number.");
+                    }
+                    break;
+
+                case "6":
                     running = false; // leaves the while loop, returns to Main
                     break;
 
                 default:
-                    System.out.println("Unknown option -- please type 1, 2, 3, 4 or 5.");
+                    System.out.println("Unknown option -- please type 1, 2, 3, 4, 5 or 6.");
             }
         }
     }
