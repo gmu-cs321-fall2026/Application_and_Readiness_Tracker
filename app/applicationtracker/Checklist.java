@@ -72,4 +72,25 @@ public class Checklist {
     public void addCustomItem(String title) {
         items.add(new ChecklistItem(title, "Custom"));
     }
+
+        /**
+     * Removes a custom item chosen by the number shown in printItems().
+     * Only items the student added (category "Custom") can be removed — the
+     * default Career Services items cannot. Returns a short status code:
+     *   "REMOVED"    - item was removed
+     *   "NOT_CUSTOM" - it's a default item, left in place
+     *   "INVALID"    - no item with that number
+     */
+    public String removeItem(int displayNumber) {
+        int index = displayNumber - 1;                 // convert to list index
+        if (index < 0 || index >= items.size()) {
+            return "INVALID";
+        }
+        ChecklistItem item = items.get(index);
+        if (!"Custom".equals(item.getCategory())) {
+            return "NOT_CUSTOM";                        // protect default items
+        }
+        items.remove(index);
+        return "REMOVED";
+    }
 }

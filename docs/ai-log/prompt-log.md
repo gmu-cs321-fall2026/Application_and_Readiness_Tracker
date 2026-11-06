@@ -196,3 +196,35 @@ The rest of the file was accepted.
 
 **Prompt:** I provided ApplicationTrackerTests.java as an example of tests that needed to be created, and also included description of the checklist requirements.
 
+-----
+## November 6 2026
+## Wiki 
+**AI tool:** Claude 
+
+**Use:**
+I asked Claude for a template for the wiki display. I was unfamiliar with the wiki functionality and wanted it to look cleaner.
+
+**Produced:**
+A zip file and template for the wiki. 
+
+**Accepted or Rejected:**
+I only used the Navigation layout that was produced, but the files/endpoints that I used in those links are info from the CS321 project description page, or my own wording.
+
+**Prompt:**
+I asked Claude to help create a sidebar type layout
+
+## checklist.java, checklistMenu
+
+**AI tool:** Claude
+
+**Use:** 
+to update the checklist functionality to remove only custom items, not the default template.
+
+**Produced:**
+toRemove function and updates to the switch statement
+
+**Accepted or Rejected:** 
+Accepted the files and created functions for the remove function
+
+----
+
