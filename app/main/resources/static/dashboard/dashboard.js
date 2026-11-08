@@ -15,13 +15,19 @@ function board(){
   document.getElementById("upcoming").innerHTML=up.length?up.map(i=>`<div class="row"><span class="when">${fmt(i.at)}</span><span>${esc(i.e)}, ${esc(i.type)}</span></div>`).join(""):'<p class="mute">No interviews scheduled.</p>';
 }
 function checklist(){
-  const done=list.filter(x=>x.d).length,p=list.length?Math.round(done/list.length*100):0;
+  const done=list.filter(x=>x.done).length,p=list.length?Math.round(done/list.length*100):0;
   document.getElementById("pct").textContent=p+"%";
   document.getElementById("pctnote").textContent=`${done} of ${list.length} done`;
   document.getElementById("fill").style.width=p+"%";
-  document.getElementById("checklist").innerHTML=list.map((x,i)=>`<label class="ck"><input type="checkbox" data-i="${i}" ${x.d?"checked":""}> ${esc(x.t)}</label>`).join("");
-  document.querySelectorAll("#checklist input").forEach(c=>c.onchange=()=>{list[c.dataset.i].d=c.checked;checklist()});
+  document.getElementById("checklist").innerHTML=(list.length?list.map(x=>`<label class="ck"><input type="checkbox" data-id="${x.id}" ${x.done?"checked":""}> ${esc(x.title)}</label>`).join(""):'<p class="mute">No checklist items yet.</p>')
+    +'<a class="navlink" style="display:inline-block;margin-top:10px" href="../checklist/checklist.html">Open full checklist &rarr;</a>';
+  document.querySelectorAll("#checklist input").forEach(c=>c.onchange=()=>{
+    const item=list.find(x=>String(x.id)===c.dataset.id);
+    if(item){item.done=c.checked;saveChecklistItems(list);checklist();}
+  });
 }
+// Reload the checklist when coming back to this page, so changes made on the Checklist page show up
+window.addEventListener("pageshow",()=>{list=loadChecklistItems();checklist();});
 function roundsView(){
   const act=apps.filter(a=>a.active&&rounds(a).length);
   document.getElementById("rounds").innerHTML=act.length?act.map(a=>`<h3>${esc(a.employer)} <span class="mute">${esc(a.role)}</span></h3>`+

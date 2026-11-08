@@ -11,17 +11,8 @@
 // ---- MOCK DATA: replace with a call to the Java backend (/api/checklist) ----
 // Shape matches the Java ChecklistItem: title, category, done, link, custom.
 // (The dashboard's simpler widget uses {t, d}; map title->t and done->d there.)
-let items = [
-  {id: 1, title: "Resume drafted",                     category: "Documents",       done: false, link: null, custom: false},
-  {id: 2, title: "Resume reviewed by Career Services", category: "Documents",       done: false, link: null, custom: false},
-  {id: 3, title: "References identified",               category: "Documents",       done: false, link: null, custom: false},
-  {id: 4, title: "LinkedIn profile updated",           category: "Online presence", done: false, link: null, custom: false},
-  {id: 5, title: "Portfolio / GitHub current",         category: "Online presence", done: false, link: null, custom: false},
-  {id: 6, title: "Elevator pitch practiced",           category: "Interview prep",  done: false, link: null, custom: false},
-  {id: 7, title: "Mock interview completed",           category: "Interview prep",  done: false, link: null, custom: false},
-  {id: 8, title: "Target company list built",          category: "Research",        done: false, link: null, custom: false}
-];
-let nextId = 9;   // used to give new custom items a unique id
+let items = loadChecklistItems();
+let nextId = Math.max(0, ...items.map(i => i.id)) + 1;
 // ----------------------------------------------------------------------------
 
 const listEl = document.getElementById("checklist");
@@ -76,6 +67,7 @@ function render() {
     ? items.map(renderItemCard).join("")
     : '<p class="mute">No checklist items.</p>';
   renderProgress();
+  saveChecklistItems(items);   // keep the dashboard in sync
 }
 
 // ---- interactions (update local data, then re-render) ----
