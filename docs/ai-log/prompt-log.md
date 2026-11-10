@@ -245,13 +245,26 @@ Accepted the created functions and tests. no changes needed to be made, everythi
 **AI tool:** Claude
 
 **Use:** 
-Needed to create a front end for the checklist files and needed to integrate them with the dashboard and other features
+Needed to create a front end for the checklist files and needed to integrate them with the dashboard and other features.
 
 **Produced:**
 created the html,css, and js files for the checklist that were connected to the dashboard. There was some connection issues when loading the dashboard, but claude was able to figure out the issue (small fix)
 
 **Accepted or Rejected:** 
 Accepted all files and made small tweaks to index.html in dashboard to fix the checklist button not appearing and the calendar not linking properly.
+
+## static/checklist/
+
+**AI tool:** Claude
+
+**Use:** 
+To build off of the first "draft" of checklist front end files. Just added the functionality options that the console menu had. There was initially no "extra" functionality in the front end files.
+
+**Produced:**
+created the html,css, and js files for the checklist that were connected to the dashboard. Kept the same design that the dashboard had originally.
+
+**Accepted or Rejected:** 
+Accepted all files, changed the front end files for checklist. 
 
 ----
 
