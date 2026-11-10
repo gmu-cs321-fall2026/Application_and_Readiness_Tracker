@@ -268,3 +268,15 @@ Accepted all files, changed the front end files for checklist.
 
 ----
 
+## November 10, 2026
+
+**AI Tool:** Claude
+
+**Use:** I pasted our InterviewStorage.java and asked Claude to write tests for saving and loading interview rounds. I also used it to walk me through testing interview rounds in Manavi's web front end.
+
+**Produced:** tests/InterviewStorageTest.java with 7 tests. The tests found a bug: rounds were saved in date order but loaded in round-number order, so rounds added out of date order couldn't be reloaded after a restart. Claude suggested sorting rounds by round number in InterviewStorage.save.
+
+**Accepted or Rejected:** I ran the tests and confirmed the bug, applied the fix, and checked that all storage tests and our existing tests pass. I told Manavi about the fix before opening a pull request because InterviewStorage is her code.
+
+**Prompt:** I asked what else I could do for my part, then pasted InterviewStorage.java so the test would match our code.
+
