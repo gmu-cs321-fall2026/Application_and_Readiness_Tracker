@@ -7,6 +7,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 
 public class InterviewStorage {
@@ -20,7 +21,11 @@ public class InterviewStorage {
         List<String> lines = new ArrayList<>();
 
         for (Application app : applications) {
-            for (InterviewRound round : app.getInterviewRounds()) {
+            // keep round-number order so rounds reload in the order they were added
+            List<InterviewRound> rounds = new ArrayList<>(app.getInterviewRounds());
+            rounds.sort(Comparator.comparingInt(InterviewRound::getRoundNumber));
+
+            for (InterviewRound round : rounds) {
                 lines.add(String.join("\t",
                         encode(app.getId()),
                         encode(String.valueOf(round.getRoundNumber())),
