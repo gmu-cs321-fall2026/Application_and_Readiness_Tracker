@@ -53,6 +53,9 @@ public class ApplicationApiServer {
         // restore saved checklist progress, tasks, and links
         ReadinessStorage.load(readinessChecklist);
 
+        // calendar notes: see CalendarApi.java
+        CalendarApi.register(server);
+
         server.start();
 
         System.out.println("Application Tracker running at:");
