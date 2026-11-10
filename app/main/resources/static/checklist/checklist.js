@@ -1,19 +1,37 @@
 // ============================================================================
 // Readiness Checklist — front-end view
 //
-// Mirrors the structure of application-tracker.js. Right now it runs on LOCAL
-// MOCK DATA so the page works on its own. To use real data from the Java
-// backend later, replace loadChecklist() with a fetch() call to an endpoint
-// such as "/api/checklist" (the same way application-tracker.js uses
-// "/api/applications"), and point the toggle/add/remove handlers at that API.
+// Mirrors the structure of application-tracker.js. Runs on LOCAL MOCK DATA so
+// the page works on its own. To use real data from the Java backend later,
+// replace loadChecklist() with a fetch() to an endpoint like "/api/checklist"
+// (the same way application-tracker.js uses "/api/applications"), and point the
+// handlers at that API.
+//
+// Feature parity with the Java Checklist: toggle complete, add custom item,
+// remove custom item, rename custom item, add/edit link, mark all, reset all.
+// (Rename and remove are restricted to custom items, exactly like the Java version.)
 // ============================================================================
 
 // ---- MOCK DATA: replace with a call to the Java backend (/api/checklist) ----
+
 // Shape matches the Java ChecklistItem: title, category, done, link, custom.
 // (The dashboard's simpler widget uses {t, d}; map title->t and done->d there.)
 let items = loadChecklistItems();
 let nextId = Math.max(0, ...items.map(i => i.id)) + 1;
-// ----------------------------------------------------------------------------
+
+// let items = [
+//   {id: 1, title: "Resume drafted",                     category: "Documents",       done: false, link: null, custom: false},
+//   {id: 2, title: "Resume reviewed by Career Services", category: "Documents",       done: false, link: null, custom: false},
+//   {id: 3, title: "References identified",               category: "Documents",       done: false, link: null, custom: false},
+//   {id: 4, title: "LinkedIn profile updated",           category: "Online presence", done: false, link: null, custom: false},
+//   {id: 5, title: "Portfolio / GitHub current",         category: "Online presence", done: false, link: null, custom: false},
+//   {id: 6, title: "Elevator pitch practiced",           category: "Interview prep",  done: false, link: null, custom: false},
+//   {id: 7, title: "Mock interview completed",           category: "Interview prep",  done: false, link: null, custom: false},
+//   {id: 8, title: "Target company list built",          category: "Research",        done: false, link: null, custom: false}
+// ];
+// let nextId = 9;
+
+
 
 const listEl = document.getElementById("checklist");
 const progressLabel = document.getElementById("progressLabel");
@@ -21,8 +39,9 @@ const progressPct = document.getElementById("progressPct");
 const progressFill = document.getElementById("progressFill");
 const newItemInput = document.getElementById("newItemTitle");
 const addBtn = document.getElementById("addItemBtn");
+const markAllBtn = document.getElementById("markAllBtn");
+const resetAllBtn = document.getElementById("resetAllBtn");
 
-// Escape user-entered text before putting it in HTML (same helper the other views use).
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -42,9 +61,15 @@ function renderItemCard(item) {
     ? `<a class="item-link" href="${escapeHtml(item.link)}" target="_blank" rel="noopener">link</a>`
     : "";
 
-  // Only custom items get a remove button (defaults are protected, same as the Java version).
-  const removeHtml = item.custom
-    ? `<button type="button" class="item-remove" data-id="${item.id}">remove</button>`
+  // Every item can have a link added/edited (matches Java setItemLink).
+  const linkBtn = `<button type="button" class="item-action item-setlink" data-id="${item.id}">${item.link ? "edit link" : "add link"}</button>`;
+
+  // Only custom items can be renamed or removed (matches the Java rules).
+  const editBtn = item.custom
+    ? `<button type="button" class="item-action item-edit" data-id="${item.id}">rename</button>`
+    : "";
+  const removeBtn = item.custom
+    ? `<button type="button" class="item-action item-remove" data-id="${item.id}">remove</button>`
     : "";
 
   return `
@@ -57,7 +82,7 @@ function renderItemCard(item) {
           ${linkHtml}
         </span>
       </span>
-      ${removeHtml}
+      <span class="item-actions">${linkBtn}${editBtn}${removeBtn}</span>
     </label>
   `;
 }
@@ -70,7 +95,7 @@ function render() {
   saveChecklistItems(items);   // keep the dashboard in sync
 }
 
-// ---- interactions (update local data, then re-render) ----
+// ---- interactions ----
 
 // Toggle complete/incomplete when a checkbox changes.
 listEl.addEventListener("change", event => {
@@ -83,14 +108,34 @@ listEl.addEventListener("change", event => {
   }
 });
 
-// Remove a custom item.
+// Handle the per-item action buttons (link / rename / remove).
 listEl.addEventListener("click", event => {
-  const button = event.target.closest(".item-remove");
+  const button = event.target.closest("button.item-action");
   if (!button) return;
-  event.preventDefault();
+  event.preventDefault();   // stop the click from also toggling the checkbox
+
   const id = Number(button.dataset.id);
-  items = items.filter(i => i.id !== id);
-  render();
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+
+  if (button.classList.contains("item-remove")) {
+    items = items.filter(i => i.id !== id);
+    render();
+
+  } else if (button.classList.contains("item-edit")) {
+    const newTitle = prompt("New title:", item.title);
+    if (newTitle && newTitle.trim()) {
+      item.title = newTitle.trim();
+      render();
+    }
+
+  } else if (button.classList.contains("item-setlink")) {
+    const newLink = prompt("Enter a link (leave blank to clear it):", item.link || "");
+    if (newLink !== null) {                       // null means they hit Cancel
+      item.link = newLink.trim() ? newLink.trim() : null;
+      render();
+    }
+  }
 });
 
 // Add a custom item.
@@ -101,16 +146,24 @@ function addCustomItem() {
   newItemInput.value = "";
   render();
 }
-
 addBtn.addEventListener("click", addCustomItem);
 newItemInput.addEventListener("keydown", event => {
   if (event.key === "Enter") addCustomItem();
 });
 
+// Mark all / reset all.
+markAllBtn.addEventListener("click", () => {
+  items.forEach(i => i.done = true);
+  render();
+});
+resetAllBtn.addEventListener("click", () => {
+  items.forEach(i => i.done = false);
+  render();
+});
+
 // ---- startup ----
-// Later: replace this with `items = await fetch("/api/checklist").then(r => r.json());`
+// Later: replace with `items = await fetch("/api/checklist").then(r => r.json());`
 function loadChecklist() {
   render();
 }
-
 loadChecklist();
