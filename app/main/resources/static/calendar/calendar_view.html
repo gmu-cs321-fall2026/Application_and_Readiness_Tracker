@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calendar | Application Tracker</title>
 <style>
-:root{--bg:#eef2f6;--surface:#fff;--ink:#14202e;--muted:#5b6b7c;--line:#d5dde6;--int:#1f4fd8;--int-bg:#e3eaff;--evt:#0b7a55;--evt-bg:#e6f6ef;--sel:#fff6dc;--focus:#d98e00;color-scheme:light}
+:root{--bg:#eef2f6;--surface:#fff;--ink:#14202e;--muted:#5b6b7c;--line:#d5dde6;--int:#1f4fd8;--int-bg:#e3eaff;--evt:#0b7a55;--evt-bg:#e6f6ef;--sel:#fff6dc;--focus:#d98e00;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
@@ -141,7 +141,7 @@ select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px 
   <div class="card toolbar">
     <div><label for="eventSearch">Search</label><input id="eventSearch" type="search" placeholder="Employer, role, or event name"></div>
     <div><label for="statusFilter">Application stage</label>
-      <select id="statusFilter"><option value="">All stages</option><option value="applied">Applied</option><option value="online-assessment">Online assessment</option><option value="phone-screen">Phone screen</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option><option value="withdrawn">Withdrawn</option></select></div>
+      <select id="statusFilter"><option value="">All stages</option><option value="planned">Planned</option><option value="in-progress">Preparing application</option><option value="applied">Applied</option><option value="online-assessment">Online assessment</option><option value="phone-screen">Phone screen</option><option value="interview">Interview</option><option value="offer">Offer</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option><option value="withdrawn">Withdrawn</option></select></div>
     <div><label for="readinessFilter">Preparation</label>
       <select id="readinessFilter"><option value="">Any</option><option value="not-started">Not started</option><option value="in-progress">In progress</option><option value="ready">Ready</option></select></div>
   </div>
@@ -161,6 +161,7 @@ select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px 
 </div>
 <div class="toast" id="toast" role="status"></div>
 
+<script src="calendar-api.js"></script>
 <script>
 /* ---- Data -------------------------------------------------------------
    Replace this with your backend call, e.g. getCalendarEvents(userId).
@@ -189,15 +190,25 @@ const $ = id => document.getElementById(id);
 const USER_ID = "7"; // Temporary Subsystem 3 test user
 const EVENTS_API_TOKEN = "student-token"; // Temporary test token only
 const prep = list => list.map(e => ({ ...e, date: new Date(e.start) })).sort((a, b) => a.date - b.date);
-
-/* Merges interviews (our subsystem) with registered career events (Events & Resources).
-   Field names below are assumptions: adjust them to match the real API responses. */
+const APP_URL = "/applicationtracker/application-tracker.html";
 function checkResponse(r) { if (!r.ok) throw new Error("Request failed: " + r.status); return r; }
-const mapInterview = a => ({
-  id: "i" + a.id, applicationId: a.applicationId || a.id, type: "interview", title: a.employer + ", " + a.role,
-  start: a.datetime, detail: [a.round ? "Round " + a.round : "", a.format].filter(Boolean).join(", "),
-  status: a.status || "interview", applicationUrl: a.applicationUrl || "",
-  tasks: Array.isArray(a.readinessTasks) ? a.readinessTasks : []
+
+/* Merges everything the calendar shows, one source per subsystem:
+   - Application Tracker:  application deadlines        (GET /api/applications)
+   - Interview Stage Tracker: interview rounds           (GET /api/applications/{id}/interviews)
+   - Readiness Checklist:  prep tasks on each interview  (GET /api/readiness)
+   - Events & Resources (Subsystem 3): registered career events (unchanged from your original code)
+   If one source fails, the others still load. start values are ISO strings; interview and
+   deadline times carry no offset, so the browser reads them as the student's local time. */
+const FORMATS = { PHONE: "Phone", VIDEO_CALL: "Video call", ON_CAMPUS: "On campus", ON_SITE: "On-site at employer", OTHER: "Other" };
+const INTERVIEW_TYPES = { RECRUITER_SCREEN: "Recruiter screen", BEHAVIORAL: "Behavioral", TECHNICAL: "Technical", CASE: "Case",
+  PANEL: "Panel", FINAL_ROUND: "Final round", OTHER: "Other" };
+const mapInterview = (r, tasks) => ({
+  id: "i" + r.application.id + "-" + r.roundNumber, applicationId: r.application.id, type: "interview",
+  title: r.application.employer + ", " + r.application.role, start: r.scheduledAt,
+  detail: ["Round " + r.roundNumber, INTERVIEW_TYPES[r.type] || r.type, FORMATS[r.format] || r.format].join(", "),
+  status: CalendarApi.statusKey(r.application.status),
+  applicationUrl: APP_URL + "#" + encodeURIComponent(r.application.id), tasks
 });
 const mapCareerEvent = e => ({
   id: "e" + e.id,
@@ -208,17 +219,21 @@ const mapCareerEvent = e => ({
     : (e.startTime || e.datetime),
   detail: e.location || ""
 });
+const mapDeadline = app => ({
+  id: "deadline-" + app.id, type: "event", title: app.employer + " \u2014 Application Deadline",
+  start: app.deadline + "T12:00:00", detail: app.role + " | Application deadline",
+  status: CalendarApi.statusKey(app.status), applicationId: app.id,
+  applicationUrl: APP_URL + "#" + encodeURIComponent(app.id)
+});
 
-/* start / datetime / startTime must be ISO strings WITH a timezone offset (e.g. 2026-10-14T14:30:00-04:00),
-   otherwise events can land on the wrong day. If one source fails, the other still loads. */
+let readinessTasks = []; // shared by every interview, see below
 
 async function getCalendarEvents(userId) {
   const id = encodeURIComponent(userId);
 
   const results = await Promise.allSettled([
-    fetch("/api/applications").then(checkResponse).then(r => r.json()),
-    fetch("/applications/" + id + "/upcoming")
-      .then(checkResponse).then(r => r.json()),
+    CalendarApi.getApplications(),
+    CalendarApi.getReadiness(),
     fetch("/users/" + id + "/events/registered", {
       headers: {
         "Authorization": "Bearer " + EVENTS_API_TOKEN
@@ -230,11 +245,8 @@ async function getCalendarEvents(userId) {
     throw new Error("All calendar sources failed.");
   }
 
-  const applications = results[0].status === "fulfilled"
-    ? results[0].value : [];
-
-  const interviews = results[1].status === "fulfilled"
-    ? results[1].value : [];
+  const applications = results[0].status === "fulfilled" ? results[0].value : [];
+  const readiness = results[1].status === "fulfilled" ? results[1].value : { items: [] };
 
   const eventResponse = results[2].status === "fulfilled"
   ? results[2].value
@@ -246,37 +258,60 @@ const careerEvents = Array.isArray(eventResponse)
       ? eventResponse.items
       : []);
 
-  const deadlines = applications
-    .filter(app => app.deadline)
-    .map(app => ({
-      id: "deadline-" + app.id,
-      type: "event",
-      title: app.employer + " — Application Deadline",
-      start: app.deadline + "T12:00:00",
-      detail: app.role + " | Application deadline",
-      status: app.status.toLowerCase().replaceAll("_", "-"),
-      applicationId: app.id,
-      applicationUrl: "../applicationtracker/application-tracker.html"
-    }));
+  // The checklist belongs to the student, not one interview, so every interview shares the same
+  // task objects: ticking a task on one interview updates it on all of them.
+  readinessTasks = readiness.items.map(i => ({ id: String(i.number), label: i.title, completed: i.done }));
+  const rounds = await CalendarApi.getInterviews(applications);
 
-  return deadlines
-    .concat(interviews.filter(a => a.type === "interview").map(mapInterview))
+  return applications.filter(app => app.deadline).map(mapDeadline)
+    .concat(rounds.map(r => mapInterview(r, readinessTasks)))
     .concat(careerEvents.map(mapCareerEvent));
 }
 
-async function syncReadinessTask(applicationId, taskId, completed) {
-  if (!applicationId) return;
-  try { // placeholder endpoint: match the real readiness API
-    checkResponse(await fetch("/applications/" + encodeURIComponent(applicationId) + "/readiness/tasks/" + encodeURIComponent(taskId),
-      { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ completed }) }));
-  } catch (err) { toast("The readiness update could not be saved."); }
+// The server flips the task and returns the whole checklist; show what it ended up as,
+// in case the checklist page changed it too.
+async function syncReadinessTask(taskId) {
+  try {
+    const result = await CalendarApi.toggleReadiness(taskId);
+    result.items.forEach(i => {
+      const t = readinessTasks.find(x => x.id === String(i.number));
+      if (t) t.completed = i.done;
+    });
+    render();
+  } catch (err) { toast("The readiness update could not be saved."); return false; }
+  return true;
 }
 
 // Starts with sample data so the page works on its own; replaced when the API calls succeed.
 let events = prep(sampleEvents());
 let notes = {};
 try { notes = JSON.parse(localStorage.getItem("calendarNotes") || "{}"); } catch (e) {}
-const saveNotes = () => { try { localStorage.setItem("calendarNotes", JSON.stringify(notes)); } catch (e) {} };
+/* Notes are saved on the server (GET/PUT /api/calendar/notes) so they follow the student to any browser.
+   The browser copy is only a fallback for when the server is unreachable. Keys: "d:<date>" or "e:<event id>". */
+const noteTimers = {};
+function saveNote(key) {
+  try { localStorage.setItem("calendarNotes", JSON.stringify(notes)); } catch (e) {}
+  clearTimeout(noteTimers[key]);
+  noteTimers[key] = setTimeout(() => {
+    CalendarApi.saveNote(key, notes[key] || "").catch(() => toast("Your note could not be saved to the server."));
+  }, 600);
+}
+
+/* Replaces the browser copy with the server's notes. Notes written before the server existed
+   (only in this browser) are uploaded once, then the server is the single source of truth. */
+async function loadNotes() {
+  const server = await CalendarApi.getNotes();
+  let migrated = false;
+  try { migrated = localStorage.getItem("calendarNotesMigrated") === "1"; } catch (e) {}
+  if (!migrated) {
+    await Promise.all(Object.keys(notes).filter(k => !(k in server) && (notes[k] || "").trim())
+      .map(k => CalendarApi.saveNote(k, notes[k]).then(() => { server[k] = notes[k]; })));
+    try { localStorage.setItem("calendarNotesMigrated", "1"); } catch (e) {}
+  }
+  notes = server;
+  try { localStorage.setItem("calendarNotes", JSON.stringify(notes)); } catch (e) {}
+  render();
+}
 
 /* Reminders: { eventId: [minutesBefore, ...] }. Saved in the browser for now.
    Every upcoming event gets the default schedule automatically (24 hours, 6 hours, 15 minutes before)
@@ -324,7 +359,7 @@ function icon(type) { return '<svg class="i" aria-hidden="true"><use href="#' + 
 const label = type => type === "interview" ? "Interview" : "Career event";
 const hidden = {}; // event types switched off with the checkboxes on the right
 const filters = { search: "", status: "", readiness: "" };
-const STAGES = { "applied": "Applied", "online-assessment": "Online assessment", "phone-screen": "Phone screen", "interview": "Interview", "offer": "Offer", "accepted": "Accepted", "rejected": "Rejected", "withdrawn": "Withdrawn" };
+const STAGES = { "planned": "Planned", "in-progress": "Preparing application", "applied": "Applied", "online-assessment": "Online assessment", "phone-screen": "Phone screen", "interview": "Interview", "offer": "Offer", "accepted": "Accepted", "rejected": "Rejected", "withdrawn": "Withdrawn" };
 function readinessSummary(e) {
   const t = Array.isArray(e.tasks) ? e.tasks : [], done = t.filter(x => x.completed).length;
   return { done, total: t.length, pct: t.length ? Math.round(done / t.length * 100) : 0,
@@ -449,15 +484,15 @@ $("panel").addEventListener("change", ev => {
   const e = events.find(x => x.id === d.taskEvent), t = e && e.tasks.find(x => x.id === d.taskId);
   if (!t) return;
   t.completed = ev.target.checked;
-  syncReadinessTask(e.applicationId, t.id, t.completed);
   render();
+  syncReadinessTask(t.id).then(ok => { if (!ok) { t.completed = !t.completed; render(); } });
 });
 $("panel").addEventListener("input", ev => {
   const n = ev.target.dataset.n;
   if (!n) return;
   const v = ev.target.value.trim();
   v ? notes[n] = ev.target.value : delete notes[n];
-  saveNotes();
+  saveNote(n);
 });
 $("panel").addEventListener("change", ev => {
   const d = ev.target.dataset || {};
@@ -501,11 +536,22 @@ $("panel").addEventListener("change", ev => {
 });
 setInterval(checkReminders, 30000);
 
+/* Deep link from other pages: calendar_view.html#2026-10-14 jumps to that month and opens the day. */
+function applyHash() {
+  const m = /^#(\d{4})-(\d{2})-(\d{2})$/.exec(location.hash);
+  if (!m) return;
+  cursor = new Date(+m[1], +m[2] - 1, 1);
+  selected = m[1] + "-" + m[2] + "-" + m[3];
+}
+window.addEventListener("hashchange", () => { applyHash(); render(); });
+
+applyHash();
 render();
 checkReminders();
 getCalendarEvents(USER_ID)
   .then(list => { events = prep(list); $("dataWarning").hidden = true; render(); syncDefaultReminders(); })
   .catch(() => { $("dataWarning").hidden = false; /* sample data stays visible, clearly labelled */ });
+loadNotes().catch(() => { /* server unreachable: the browser copy of the notes stays in use */ });
 </script>
 </body>
 </html>
