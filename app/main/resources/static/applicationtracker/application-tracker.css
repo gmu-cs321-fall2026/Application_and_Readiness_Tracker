@@ -22,6 +22,7 @@
 }
 
 /* Three-column layout */
+
 .tracker-board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -29,7 +30,8 @@
   margin-bottom: 16px;
 }
 
-/* Compact application cards */
+/* Application cards */
+
 .application-card {
   display: flex;
   flex-direction: column;
@@ -55,7 +57,6 @@
   margin-top: 3px;
 }
 
-/* Small status label */
 .status-badge {
   display: inline-block;
   padding: 3px 8px;
@@ -78,7 +79,6 @@
   border: 1px solid var(--line);
 }
 
-/* Deadline and card footer */
 .card-date {
   font-size: 0.85rem;
   color: var(--mute);
@@ -103,7 +103,8 @@
   text-decoration: underline;
 }
 
-/* Full details panel */
+/* Application details */
+
 .details-panel {
   margin-top: 16px;
 }
@@ -152,7 +153,8 @@
   white-space: pre-wrap;
 }
 
-/* Add/Edit application form */
+/* Application form */
+
 .form-panel {
   margin-bottom: 16px;
 }
@@ -194,7 +196,333 @@
   margin-top: 16px;
 }
 
+/* Interview Stage Tracker */
+
+.interview-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.interview-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.interview-heading h3 {
+  margin: 0 0 5px;
+}
+
+.interview-heading p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.interview-count {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--accentbg);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#interviewList {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.interview-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.interview-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.interview-card-header h4 {
+  margin: 0 0 5px;
+  font-size: 0.98rem;
+}
+
+.interview-card-header p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.interview-format {
+  padding: 5px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  color: var(--mute);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.interview-notes {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.interview-notes p {
+  margin: 5px 0 0;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.interview-notes-form {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.interview-notes-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.interview-notes-form textarea {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+
+.interview-note-btn {
+  font-size: 0.85rem;
+}
+
+.interview-form-panel {
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.interview-form-panel h4 {
+  margin: 0 0 14px;
+}
+
+#interviewForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+#interviewForm input,
+#interviewForm select {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+}
+
+.interview-message {
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--mute);
+  font-size: 0.88rem;
+}
+
+.interview-error {
+  color: #b91c1c;
+  font-size: 0.88rem;
+}
+
+#addInterviewBtn {
+  margin-top: 4px;
+}
+
+#saveInterviewBtn:disabled,
+.interview-note-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Shared Readiness Checklist */
+
+.readiness-panel {
+  margin: 20px 0;
+}
+
+.readiness-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.readiness-header h2 {
+  margin: 0 0 5px;
+}
+
+.readiness-header p {
+  margin: 0;
+}
+
+.readiness-progress-label {
+  color: var(--accent);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* Readiness progress bar */
+
+.readiness-progress-track {
+  height: 10px;
+  border-radius: 20px;
+  background: var(--accentbg);
+  overflow: hidden;
+  margin: 18px 0 24px;
+}
+
+.readiness-progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width 0.2s ease;
+}
+
+/* Readiness categories and tasks */
+
+.readiness-list {
+  display: grid;
+  gap: 20px;
+}
+
+.readiness-category h3 {
+  font-size: 1rem;
+  margin: 0 0 10px;
+}
+
+.readiness-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.readiness-task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.readiness-task input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.readiness-item.is-done .readiness-task span {
+  text-decoration: line-through;
+  color: var(--mute);
+}
+
+/* Readiness action buttons */
+
+.readiness-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.readiness-item-actions button,
+.readiness-item-actions a {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.readiness-item-actions button:hover,
+.readiness-item-actions a:hover {
+  text-decoration: underline;
+}
+
+.readiness-item-actions .readiness-remove {
+  color: #b91c1c;
+}
+
+/* Add custom task */
+
+.readiness-add-form {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.readiness-add-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.readiness-add-row {
+  display: flex;
+  gap: 10px;
+}
+
+.readiness-add-row input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  padding: 10px;
+  font: inherit;
+}
+
+.readiness-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
 /* Responsive layout */
+
 @media (max-width: 760px) {
   .tracker-board,
   .form-grid,
@@ -204,5 +532,21 @@
 
   .detail-notes {
     grid-column: auto;
+  }
+
+  .interview-heading,
+  .interview-card-header,
+  .readiness-header,
+  .readiness-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .readiness-add-row {
+    flex-direction: column;
+  }
+
+  .readiness-progress-label {
+    white-space: normal;
   }
 }

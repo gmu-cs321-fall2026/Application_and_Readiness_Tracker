@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Application Tracker</title>
 
-  <!-- Match Daria's Dashboard typography and styles -->
+  <!-- Match the shared Dashboard styling -->
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../dashboard/dashboard.css">
   <link rel="stylesheet" href="application-tracker.css">
@@ -33,7 +33,7 @@
       </button>
     </div>
 
-    <!-- Add/Edit form, hidden until needed -->
+    <!-- Add/Edit application form -->
     <section id="applicationFormPanel" class="panel form-panel hide">
       <h2 id="formTitle">Add New Application</h2>
 
@@ -130,9 +130,67 @@
       </div>
     </section>
 
-    <!-- Full application details -->
+    <!-- Shared Readiness Checklist -->
+    <section id="readinessPanel" class="panel readiness-panel"
+             aria-labelledby="readinessTitle">
+
+      <div class="readiness-header">
+        <div>
+          <h2 id="readinessTitle">Readiness Checklist</h2>
+          <p class="mute">
+            Track your overall preparation for applications and interviews.
+          </p>
+        </div>
+
+        <strong id="readinessProgressLabel" class="readiness-progress-label">
+          0 of 8 complete
+        </strong>
+      </div>
+
+      <div id="readinessProgress" class="readiness-progress-track"
+           role="progressbar"
+           aria-label="Readiness completion"
+           aria-valuemin="0"
+           aria-valuemax="100"
+           aria-valuenow="0">
+        <div id="readinessProgressFill"
+             class="readiness-progress-fill"></div>
+      </div>
+
+      <div id="readinessList" class="readiness-list" aria-live="polite">
+        <p class="mute">Loading readiness tasks...</p>
+      </div>
+
+      <form id="readinessAddForm" class="readiness-add-form">
+        <label for="readinessNewTitle">Add a Custom Task</label>
+
+        <div class="readiness-add-row">
+          <input id="readinessNewTitle"
+                 type="text"
+                 placeholder="e.g. Prepare cover letter"
+                 required>
+
+          <button type="submit" class="primary-btn">
+            + Add Task
+          </button>
+        </div>
+      </form>
+
+      <div class="readiness-footer">
+        <button id="readinessCompleteAll" type="button">
+          Mark All Complete
+        </button>
+
+        <button id="readinessReset" type="button">
+          Reset Checklist
+        </button>
+      </div>
+    </section>
+
+    <!-- Application details and interview integration -->
     <section id="detailsPanel" class="panel details-panel hide"
              aria-labelledby="detailsTitle">
+
       <div class="details-header">
         <div>
           <h2 id="detailsTitle">Application Details</h2>
@@ -143,13 +201,88 @@
 
       <div id="detailsContent"></div>
 
+      <!-- Interview Stage Tracker -->
+      <section class="interview-section" aria-labelledby="interviewTitle">
+
+        <div class="interview-heading">
+          <div>
+            <h3 id="interviewTitle">Interview Rounds</h3>
+            <p class="mute">
+              Track scheduled interviews and record notes for each round.
+            </p>
+          </div>
+
+          <span class="interview-count" id="interviewCount">0 rounds</span>
+        </div>
+
+        <div id="interviewList" aria-live="polite">
+          <p class="mute">No interview rounds recorded.</p>
+        </div>
+
+        <p id="interviewStatusMessage" class="interview-message hide">
+          To schedule an interview, update this application's status
+          to Interview.
+        </p>
+
+        <div id="interviewFormPanel" class="interview-form-panel hide">
+          <h4>Schedule Interview Round</h4>
+
+          <form id="interviewForm">
+            <div class="form-grid">
+              <label>
+                Date and Time *
+                <input id="interviewDateTime" type="datetime-local" required>
+              </label>
+
+              <label>
+                Interview Type *
+                <select id="interviewType" required>
+                  <option value="RECRUITER_SCREEN">Recruiter screen</option>
+                  <option value="BEHAVIORAL">Behavioral</option>
+                  <option value="TECHNICAL">Technical</option>
+                  <option value="CASE">Case</option>
+                  <option value="PANEL">Panel</option>
+                  <option value="FINAL_ROUND">Final round</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </label>
+
+              <label>
+                Interview Format *
+                <select id="interviewFormat" required>
+                  <option value="PHONE">Phone</option>
+                  <option value="VIDEO_CALL">Video call</option>
+                  <option value="ON_CAMPUS">On campus</option>
+                  <option value="ON_SITE">On-site at employer</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button id="cancelInterviewBtn" type="button">Cancel</button>
+              <button type="submit" class="primary-btn"
+                      id="saveInterviewBtn">
+                Save Interview
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <button id="addInterviewBtn" type="button"
+                class="primary-btn hide">
+          + Add Interview Round
+        </button>
+
+      </section>
+
       <div class="form-actions">
         <button id="editApplicationBtn" type="button" class="primary-btn">
           Edit Application
         </button>
       </div>
-    </section>
 
+    </section>
   </main>
 
   <script src="application-tracker.js"></script>
