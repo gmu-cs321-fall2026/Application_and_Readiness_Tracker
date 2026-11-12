@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calendar | Application Tracker</title>
 <style>
-:root{--bg:#eef2f6;--surface:#fff;--ink:#14202e;--muted:#5b6b7c;--line:#d5dde6;--int:#1f4fd8;--int-bg:#e3eaff;--evt:#0b7a55;--evt-bg:#e6f6ef;--sel:#fff6dc;--focus:#d98e00;color-scheme:dark}
+:root{--bg:#0f1720;--surface:#18222e;--ink:#e6edf5;--muted:#9aa9b8;--line:#2a3846;--int:#7aa2ff;--int-bg:#1d2d54;--evt:#4fd1a1;--evt-bg:#123a2d;--sel:#3a3217;--focus:#f0b429;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
@@ -109,6 +109,12 @@ select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px 
 .chip{font-size:12.5px;padding:3px 6px}
 @media(max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:560px){:root{--cell-h:84px}.wrap{padding:12px}}
+.cell:hover{background:#1f2b39}
+.cell.today{background:#16243d}
+.cell.today .n b{color:#0f1720}
+.warn{background:#3a3217;border-color:#7a6320}
+.readiness .bar{background:#2a3846}
+.toast{background:#2a3846;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -460,7 +466,12 @@ function shift(n) { cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 
 
 $("prev").onclick = () => shift(-1);
 $("next").onclick = () => shift(1);
-$("today").onclick = () => { cursor = new Date(now.getFullYear(), now.getMonth(), 1); render(); };
+$("today").onclick = () => {
+  const t = new Date();
+  cursor = new Date(t.getFullYear(), t.getMonth(), 1);
+  selected = key(t); // open today's details, so the button visibly does something even on the current month
+  render();
+};
 $("panel").addEventListener("click", ev => {
   if (ev.target.closest("[data-close]")) { selected = null; render(); }
 });
