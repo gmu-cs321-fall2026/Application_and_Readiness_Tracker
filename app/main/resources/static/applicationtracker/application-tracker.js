@@ -1,30 +1,25 @@
 
 const API = "/api/applications";
-const READINESS_API = "/api/readiness";
 
-const addBtn = document.getElementById("addApplicationBtn");
-const cancelBtn = document.getElementById("cancelApplicationBtn");
-const formPanel = document.getElementById("applicationFormPanel");
-const form = document.getElementById("applicationForm");
-const detailsPanel = document.getElementById("detailsPanel");
-const detailsContent = document.getElementById("detailsContent");
-const closeDetailsBtn = document.getElementById("closeDetailsBtn");
-const editBtn = document.getElementById("editApplicationBtn");
+const $ = id => document.getElementById(id);
 
-// interview elements
-const interviewList = document.getElementById("interviewList");
-const interviewCount = document.getElementById("interviewCount");
-const interviewFormPanel = document.getElementById("interviewFormPanel");
-const interviewForm = document.getElementById("interviewForm");
-const addInterviewBtn = document.getElementById("addInterviewBtn");
-const cancelInterviewBtn = document.getElementById("cancelInterviewBtn");
-const saveInterviewBtn = document.getElementById("saveInterviewBtn");
-const interviewStatusMessage =
-  document.getElementById("interviewStatusMessage");
+const addBtn = $("addApplicationBtn");
+const cancelBtn = $("cancelApplicationBtn");
+const formPanel = $("applicationFormPanel");
+const form = $("applicationForm");
+const detailsPanel = $("detailsPanel");
+const detailsContent = $("detailsContent");
+const closeDetailsBtn = $("closeDetailsBtn");
+const editBtn = $("editApplicationBtn");
 
-// readiness elements
-const readinessList = document.getElementById("readinessList");
-const readinessAddForm = document.getElementById("readinessAddForm");
+const interviewList = $("interviewList");
+const interviewCount = $("interviewCount");
+const interviewFormPanel = $("interviewFormPanel");
+const interviewForm = $("interviewForm");
+const addInterviewBtn = $("addInterviewBtn");
+const cancelInterviewBtn = $("cancelInterviewBtn");
+const saveInterviewBtn = $("saveInterviewBtn");
+const interviewStatusMessage = $("interviewStatusMessage");
 
 let applications = [];
 let selectedApplicationId = null;
@@ -64,8 +59,11 @@ const interviewFormatLabels = {
 const groups = {
   planned: ["PLANNED", "IN_PROGRESS"],
   applied: [
-    "APPLIED", "ONLINE_ASSESSMENT", "PHONE_SCREEN",
-    "INTERVIEW", "OFFER"
+    "APPLIED",
+    "ONLINE_ASSESSMENT",
+    "PHONE_SCREEN",
+    "INTERVIEW",
+    "OFFER"
   ],
   past: ["ACCEPTED", "REJECTED", "WITHDRAWN"]
 };
@@ -85,7 +83,8 @@ const sections = {
   }
 };
 
-// escape text before inserting into HTML
+// Utilities
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -113,10 +112,7 @@ function formatInterviewDate(value) {
   if (!value) return "Not scheduled";
 
   const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
+  if (Number.isNaN(date.getTime())) return value;
 
   return date.toLocaleString("en-US", {
     month: "short",
@@ -143,28 +139,59 @@ function getGroup(status) {
   );
 }
 
-// render one application card
+async function readResponse(response, fallback) {
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.error || fallback);
+  }
+
+  return result;
+}
+
+function postForm(url, fields) {
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams(fields).toString()
+  });
+}
+
+// Application cards
+
 function renderCard(application) {
   const group = getGroup(application.status);
-  const badgeClass = group === "planned" ? "planned"
-    : group === "past" ? "past" : "";
 
-  const dateLabel = group === "past" ? "Application date" : "Deadline";
-  const dateValue = group === "past"
-    ? application.applicationDate : application.deadline;
+  const badgeClass =
+    group === "planned" ? "planned" :
+    group === "past" ? "past" : "";
+
+  const dateLabel =
+    group === "past" ? "Application date" : "Deadline";
+
+  const dateValue =
+    group === "past"
+      ? application.applicationDate
+      : application.deadline;
 
   return `
     <div class="card application-card">
       <div class="card-heading">
         <div>
           <b>${escapeHtml(application.employer)}</b>
-          <span class="role">${escapeHtml(application.role)}</span>
+          <span class="role">
+            ${escapeHtml(application.role)}
+          </span>
         </div>
       </div>
 
       <div>
         <span class="status-badge ${badgeClass}">
-          ${escapeHtml(statusLabels[application.status])}
+          ${escapeHtml(
+            statusLabels[application.status] || application.status
+          )}
         </span>
       </div>
 
@@ -173,26 +200,26 @@ function renderCard(application) {
       </div>
 
       <div class="card-footer">
-        <button type="button" class="details-link"
-                data-id="${escapeHtml(application.id)}">
-          View Details →
+        <button
+          type="button"
+          class="details-link"
+          data-id="${escapeHtml(application.id)}">
+          View Details &rarr;
         </button>
       </div>
     </div>
   `;
 }
 
-// display applications in their status columns
 function renderApplications() {
   for (const group of Object.keys(groups)) {
     const filtered = applications.filter(app =>
       groups[group].includes(app.status)
     );
 
-    document.getElementById(sections[group].count).textContent =
-      filtered.length;
+    $(sections[group].count).textContent = filtered.length;
 
-    document.getElementById(sections[group].container).innerHTML =
+    $(sections[group].container).innerHTML =
       filtered.length
         ? filtered.map(renderCard).join("")
         : '<p class="mute">No applications yet.</p>';
@@ -210,53 +237,80 @@ async function loadApplications() {
   renderApplications();
 }
 
+// Application details
+
 function detailField(label, value, extraClass = "") {
   return `
     <div class="detail-item ${extraClass}">
-      <span class="detail-label">${escapeHtml(label)}</span>
-      <div class="detail-value">${escapeHtml(value)}</div>
+      <span class="detail-label">
+        ${escapeHtml(label)}
+      </span>
+      <div class="detail-value">
+        ${escapeHtml(value)}
+      </div>
     </div>
   `;
 }
 
-// display selected application and its interviews
 async function showDetails(id) {
-  const app = applications.find(item => item.id === id);
+  const app = applications.find(
+    item => String(item.id) === String(id)
+  );
+
   if (!app) return;
 
-  selectedApplicationId = id;
+  selectedApplicationId = app.id;
 
-  document.getElementById("detailsTitle").textContent = app.employer;
-  document.getElementById("detailsSubtitle").textContent = app.role;
+  $("detailsTitle").textContent = app.employer;
+  $("detailsSubtitle").textContent = app.role;
 
   detailsContent.innerHTML = `
     <div class="details-grid">
-      ${detailField("Status", statusLabels[app.status])}
-      ${detailField("Application Date", formatDate(app.applicationDate))}
+      ${detailField(
+        "Status",
+        statusLabels[app.status] || app.status
+      )}
+      ${detailField(
+        "Application Date",
+        formatDate(app.applicationDate)
+      )}
       ${detailField("Source", app.source)}
       ${detailField("Deadline", formatDate(app.deadline))}
-      ${detailField("Notes", app.notes || "No notes added.", "detail-notes")}
+      ${detailField(
+        "Notes",
+        app.notes || "No notes added.",
+        "detail-notes"
+      )}
     </div>
   `;
 
   const canAddInterview = app.status === "INTERVIEW";
 
-  addInterviewBtn.classList.toggle("hide", !canAddInterview);
-  interviewStatusMessage.classList.toggle("hide", canAddInterview);
+  addInterviewBtn.classList.toggle(
+    "hide",
+    !canAddInterview
+  );
+
+  interviewStatusMessage.classList.toggle(
+    "hide",
+    canAddInterview
+  );
 
   interviewFormPanel.classList.add("hide");
   interviewForm.reset();
 
   detailsPanel.classList.remove("hide");
+
   detailsPanel.scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
 
-  await loadInterviews(id);
+  await loadInterviews(app.id);
 }
 
-// retrieve interview rounds from Java backend
+// Interview Tracker
+
 async function loadInterviews(applicationId) {
   interviewList.innerHTML =
     '<p class="mute">Loading interviews...</p>';
@@ -266,30 +320,30 @@ async function loadInterviews(applicationId) {
       `${API}/${encodeURIComponent(applicationId)}/interviews`
     );
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Could not load interviews.");
-    }
+    const rounds = await readResponse(
+      response,
+      "Could not load interviews."
+    );
 
     if (selectedApplicationId !== applicationId) return;
 
-    renderInterviews(result);
+    renderInterviews(rounds);
   } catch (error) {
     if (selectedApplicationId !== applicationId) return;
 
     interviewList.innerHTML = `
-      <p class="interview-error">${escapeHtml(error.message)}</p>
+      <p class="interview-error">
+        ${escapeHtml(error.message)}
+      </p>
     `;
   }
 }
 
-// display interview rounds
 function renderInterviews(rounds) {
   interviewCount.textContent =
     `${rounds.length} ${rounds.length === 1 ? "round" : "rounds"}`;
 
-  if (rounds.length === 0) {
+  if (!rounds.length) {
     interviewList.innerHTML =
       '<p class="mute">No interview rounds recorded yet.</p>';
     return;
@@ -301,10 +355,15 @@ function renderInterviews(rounds) {
         <div>
           <h4>
             Round ${round.roundNumber} —
-            ${escapeHtml(interviewTypeLabels[round.type] || round.type)}
+            ${escapeHtml(
+              interviewTypeLabels[round.type] || round.type
+            )}
           </h4>
+
           <p class="mute">
-            ${escapeHtml(formatInterviewDate(round.scheduledAt))}
+            ${escapeHtml(
+              formatInterviewDate(round.scheduledAt)
+            )}
           </p>
         </div>
 
@@ -317,16 +376,22 @@ function renderInterviews(rounds) {
 
       <div class="interview-notes">
         <span class="detail-label">Interview Notes</span>
-        <p>${escapeHtml(round.notes || "No notes added yet.")}</p>
+        <p>${escapeHtml(
+          round.notes || "No notes added yet."
+        )}</p>
       </div>
 
-      <form class="interview-notes-form"
-            data-round="${round.roundNumber}">
+      <form
+        class="interview-notes-form"
+        data-round="${round.roundNumber}">
+
         <label>
           Add Notes
-          <textarea name="notes" rows="2"
-                    placeholder="Record interview details or feedback..."
-                    required></textarea>
+          <textarea
+            name="notes"
+            rows="2"
+            placeholder="Record interview details or feedback..."
+            required></textarea>
         </label>
 
         <div class="form-actions">
@@ -339,7 +404,8 @@ function renderInterviews(rounds) {
   `).join("");
 }
 
-// show interview scheduling form
+// Open interview form
+
 addInterviewBtn.addEventListener("click", () => {
   interviewForm.reset();
   interviewFormPanel.classList.remove("hide");
@@ -351,7 +417,8 @@ addInterviewBtn.addEventListener("click", () => {
   });
 });
 
-// cancel interview scheduling
+// Cancel interview form
+
 cancelInterviewBtn.addEventListener("click", () => {
   interviewForm.reset();
   interviewFormPanel.classList.add("hide");
@@ -360,43 +427,34 @@ cancelInterviewBtn.addEventListener("click", () => {
     item => item.id === selectedApplicationId
   );
 
-  if (app && app.status === "INTERVIEW") {
+  if (app?.status === "INTERVIEW") {
     addInterviewBtn.classList.remove("hide");
   }
 });
 
-// schedule a new interview round
+// Schedule interview
+
 interviewForm.addEventListener("submit", async event => {
   event.preventDefault();
 
   const applicationId = selectedApplicationId;
   if (!applicationId) return;
 
-  const data = new URLSearchParams({
-    scheduledAt: document.getElementById("interviewDateTime").value,
-    type: document.getElementById("interviewType").value,
-    format: document.getElementById("interviewFormat").value
-  });
+  const fields = {
+    scheduledAt: $("interviewDateTime").value,
+    type: $("interviewType").value,
+    format: $("interviewFormat").value
+  };
 
   saveInterviewBtn.disabled = true;
 
   try {
-    const response = await fetch(
+    const response = await postForm(
       `${API}/${encodeURIComponent(applicationId)}/interviews`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: data.toString()
-      }
+      fields
     );
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.error || "Could not add interview.");
-    }
+    await readResponse(response, "Could not add interview.");
 
     interviewForm.reset();
     interviewFormPanel.classList.add("hide");
@@ -412,11 +470,14 @@ interviewForm.addEventListener("submit", async event => {
   }
 });
 
-// save notes for an interview round
-interviewList.addEventListener("submit", async event => {
-  const notesForm = event.target.closest(".interview-notes-form");
-  if (!notesForm) return;
+// Save interview notes
 
+interviewList.addEventListener("submit", async event => {
+  const notesForm = event.target.closest(
+    ".interview-notes-form"
+  );
+
+  if (!notesForm) return;
   event.preventDefault();
 
   const applicationId = selectedApplicationId;
@@ -427,28 +488,23 @@ interviewList.addEventListener("submit", async event => {
 
   if (!notes) return;
 
-  const submitBtn = notesForm.querySelector('button[type="submit"]');
+  const submitBtn = notesForm.querySelector(
+    'button[type="submit"]'
+  );
+
   submitBtn.disabled = true;
 
   try {
-    const response = await fetch(
-      `${API}/${encodeURIComponent(applicationId)}/interviews/${roundNumber}/notes`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({notes}).toString()
-      }
+    const response = await postForm(
+      `${API}/${encodeURIComponent(applicationId)}` +
+      `/interviews/${roundNumber}/notes`,
+      { notes }
     );
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        result.error || "Could not save interview notes."
-      );
-    }
+    await readResponse(
+      response,
+      "Could not save interview notes."
+    );
 
     if (selectedApplicationId === applicationId) {
       await loadInterviews(applicationId);
@@ -459,28 +515,33 @@ interviewList.addEventListener("submit", async event => {
   }
 });
 
-// application form mode
+// Application form
+
 function setFormMode(isEditing) {
-  document.getElementById("formTitle").textContent =
-    isEditing ? "Edit Application" : "Add New Application";
+  $("formTitle").textContent = isEditing
+    ? "Edit Application"
+    : "Add New Application";
 
-  document.getElementById("saveApplicationBtn").textContent =
-    isEditing ? "Save Changes" : "Save Application";
+  $("saveApplicationBtn").textContent = isEditing
+    ? "Save Changes"
+    : "Save Application";
 
-  const status = document.getElementById("status");
-  status.disabled = false;
+  $("status").disabled = false;
 
   if (!isEditing) {
-    status.value = "PLANNED";
+    $("status").value = "PLANNED";
   }
 }
+
+// Add application
 
 addBtn.addEventListener("click", () => {
   editingApplicationId = null;
   form.reset();
   setFormMode(false);
 
-  document.getElementById("applicationDate").value = todayLocal();
+  $("applicationDate").value = todayLocal();
+
   formPanel.classList.remove("hide");
 
   formPanel.scrollIntoView({
@@ -489,8 +550,11 @@ addBtn.addEventListener("click", () => {
   });
 });
 
+// Open application details
+
 document.querySelector(".tracker-board").addEventListener(
-  "click", event => {
+  "click",
+  event => {
     const button = event.target.closest(".details-link");
 
     if (button) {
@@ -499,10 +563,14 @@ document.querySelector(".tracker-board").addEventListener(
   }
 );
 
+// Close details
+
 closeDetailsBtn.addEventListener("click", () => {
   detailsPanel.classList.add("hide");
   selectedApplicationId = null;
 });
+
+// Edit application
 
 editBtn.addEventListener("click", () => {
   const app = applications.find(
@@ -512,17 +580,17 @@ editBtn.addEventListener("click", () => {
   if (!app) return;
 
   editingApplicationId = app.id;
+
   form.reset();
   setFormMode(true);
 
-  document.getElementById("employer").value = app.employer;
-  document.getElementById("role").value = app.role;
-  document.getElementById("applicationDate").value =
-    app.applicationDate || "";
-  document.getElementById("source").value = app.source;
-  document.getElementById("deadline").value = app.deadline || "";
-  document.getElementById("status").value = app.status;
-  document.getElementById("notes").value = app.notes || "";
+  $("employer").value = app.employer;
+  $("role").value = app.role;
+  $("applicationDate").value = app.applicationDate || "";
+  $("source").value = app.source;
+  $("deadline").value = app.deadline || "";
+  $("status").value = app.status;
+  $("notes").value = app.notes || "";
 
   formPanel.classList.remove("hide");
 
@@ -532,29 +600,37 @@ editBtn.addEventListener("click", () => {
   });
 });
 
+// Cancel application form
+
 cancelBtn.addEventListener("click", () => {
   formPanel.classList.add("hide");
   form.reset();
   editingApplicationId = null;
 });
 
-// create or update an application
+// Create or update application
+
 form.addEventListener("submit", async event => {
   event.preventDefault();
 
-  const data = new URLSearchParams({
-    employer: document.getElementById("employer").value.trim(),
-    role: document.getElementById("role").value.trim(),
-    applicationDate: document.getElementById("applicationDate").value,
-    source: document.getElementById("source").value.trim(),
-    deadline: document.getElementById("deadline").value,
-    status: document.getElementById("status").value,
-    notes: document.getElementById("notes").value.trim()
-  });
+  const fields = {
+    employer: $("employer").value.trim(),
+    role: $("role").value.trim(),
+    applicationDate: $("applicationDate").value,
+    source: $("source").value.trim(),
+    deadline: $("deadline").value,
+    status: $("status").value,
+    notes: $("notes").value.trim()
+  };
 
-  const isEditing = Boolean(editingApplicationId);
+  const isEditing = editingApplicationId !== null;
+
   const url = isEditing
-    ? `${API}/${editingApplicationId}` : API;
+    ? `${API}/${encodeURIComponent(editingApplicationId)}`
+    : API;
+
+  const saveBtn = $("saveApplicationBtn");
+  saveBtn.disabled = true;
 
   try {
     const response = await fetch(url, {
@@ -562,16 +638,15 @@ form.addEventListener("submit", async event => {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       },
-      body: data.toString()
+      body: new URLSearchParams(fields).toString()
     });
 
-    const result = await response.json();
+    const result = await readResponse(
+      response,
+      "Could not save application."
+    );
 
-    if (!response.ok) {
-      throw new Error(result.error || "Could not save application.");
-    }
-
-    const savedId = result.id;
+    const savedId = result.id ?? editingApplicationId;
 
     await loadApplications();
 
@@ -579,263 +654,18 @@ form.addEventListener("submit", async event => {
     formPanel.classList.add("hide");
     editingApplicationId = null;
 
-    if (!detailsPanel.classList.contains("hide")) {
+    if (!detailsPanel.classList.contains("hide") && savedId != null) {
       await showDetails(savedId);
     }
   } catch (error) {
     alert(error.message);
+  } finally {
+    saveBtn.disabled = false;
   }
 });
 
-// readiness API helper
-async function readinessRequest(path = "", fields = null) {
-  const options = fields === null ? {} : {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams(fields).toString()
-  };
+// Startup
 
-  const response = await fetch(`${READINESS_API}${path}`, options);
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      result.error || "Could not update readiness checklist."
-    );
-  }
-
-  return result;
-}
-
-// display readiness tasks and progress
-function renderReadiness(data) {
-  const percent = data.total === 0
-    ? 0
-    : Math.round(100 * data.completed / data.total);
-
-  document.getElementById("readinessProgressLabel").textContent =
-    `${data.completed} of ${data.total} complete (${percent}%)`;
-
-  document.getElementById("readinessProgressFill").style.width =
-    `${percent}%`;
-
-  document.getElementById("readinessProgress")
-    .setAttribute("aria-valuenow", percent);
-
-  if (!data.items.length) {
-    readinessList.innerHTML =
-      '<p class="mute">No readiness tasks yet.</p>';
-    return;
-  }
-
-  const categories = [
-    ...new Set(data.items.map(item => item.category))
-  ];
-
-  readinessList.innerHTML = categories.map(category => {
-    const tasks = data.items.filter(
-      item => item.category === category
-    );
-
-    return `
-      <div class="readiness-category">
-        <h3>${escapeHtml(category)}</h3>
-
-        ${tasks.map(item => {
-          const link = item.externalLink
-            && /^https?:\/\//i.test(item.externalLink)
-            ? `
-              <a href="${escapeHtml(item.externalLink)}"
-                 target="_blank"
-                 rel="noopener noreferrer">
-                Open Link
-              </a>
-            `
-            : "";
-
-          const custom = item.category === "Custom";
-
-          return `
-            <div class="readiness-item ${item.done ? "is-done" : ""}"
-                 data-number="${item.number}">
-
-              <label class="readiness-task">
-                <input type="checkbox"
-                       class="readiness-toggle"
-                       ${item.done ? "checked" : ""}>
-
-                <span>${escapeHtml(item.title)}</span>
-              </label>
-
-              <div class="readiness-item-actions">
-                ${link}
-
-                <button type="button" data-action="link">
-                  ${item.externalLink ? "Edit Link" : "Add Link"}
-                </button>
-
-                ${custom ? `
-                  <button type="button" data-action="rename">
-                    Rename
-                  </button>
-
-                  <button type="button"
-                          data-action="remove"
-                          class="readiness-remove">
-                    Remove
-                  </button>
-                ` : ""}
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    `;
-  }).join("");
-}
-
-// load readiness checklist
-async function loadReadiness() {
-  renderReadiness(await readinessRequest());
-}
-
-// add custom readiness task
-readinessAddForm.addEventListener("submit", async event => {
-  event.preventDefault();
-
-  const input = document.getElementById("readinessNewTitle");
-  const title = input.value.trim();
-
-  if (!title) return;
-
-  try {
-    renderReadiness(
-      await readinessRequest("/items", {title})
-    );
-
-    readinessAddForm.reset();
-  } catch (error) {
-    alert(error.message);
-  }
-});
-
-// toggle readiness completion
-readinessList.addEventListener("change", async event => {
-  if (!event.target.matches(".readiness-toggle")) return;
-
-  const number = event.target.closest(".readiness-item")
-    .dataset.number;
-
-  event.target.disabled = true;
-
-  try {
-    renderReadiness(
-      await readinessRequest("/toggle", {number})
-    );
-  } catch (error) {
-    alert(error.message);
-    await loadReadiness().catch(() => {});
-  }
-});
-
-// manage custom tasks and external links
-readinessList.addEventListener("click", async event => {
-  const button = event.target.closest("button[data-action]");
-  if (!button) return;
-
-  const number = button.closest(".readiness-item")
-    .dataset.number;
-
-  const action = button.dataset.action;
-  let path;
-  const fields = {number};
-
-  if (action === "remove") {
-    if (!confirm("Remove this custom task?")) return;
-    path = "/items/remove";
-
-  } else if (action === "rename") {
-    const title = prompt("Enter a new task name:");
-    if (title === null) return;
-
-    if (!title.trim()) {
-      alert("Task name cannot be empty.");
-      return;
-    }
-
-    path = "/items/rename";
-    fields.title = title.trim();
-
-  } else if (action === "link") {
-    const link = prompt(
-      "Enter a full URL (https://...), or leave blank to remove:"
-    );
-
-    if (link === null) return;
-
-    if (link.trim() && !/^https?:\/\//i.test(link.trim())) {
-      alert("Use a link starting with https:// or http://.");
-      return;
-    }
-
-    path = "/items/link";
-    fields.link = link.trim();
-
-  } else {
-    return;
-  }
-
-  button.disabled = true;
-
-  try {
-    renderReadiness(
-      await readinessRequest(path, fields)
-    );
-  } catch (error) {
-    alert(error.message);
-    button.disabled = false;
-  }
-});
-
-// mark every task complete
-document.getElementById("readinessCompleteAll")
-  .addEventListener("click", async () => {
-    try {
-      renderReadiness(
-        await readinessRequest("/complete-all", {})
-      );
-    } catch (error) {
-      alert(error.message);
-    }
-  });
-
-// reset checklist completion
-document.getElementById("readinessReset")
-  .addEventListener("click", async () => {
-    if (!confirm("Mark every readiness task incomplete?")) {
-      return;
-    }
-
-    try {
-      renderReadiness(
-        await readinessRequest("/reset", {})
-      );
-    } catch (error) {
-      alert(error.message);
-    }
-  });
-
-// load application and readiness data on startup
 loadApplications().catch(error => {
   alert(error.message);
-});
-
-loadReadiness().catch(error => {
-  readinessList.innerHTML = `
-    <p class="interview-error">
-      ${escapeHtml(error.message)}
-    </p>
-  `;
 });
