@@ -21,14 +21,13 @@ public class InterviewRoundTest {
 
     // Creates an application and moves it to the INTERVIEW status
     private static String newInterviewApplication(ApplicationTracker tracker) {
-        Application application = tracker.createApplication(
+        // a submitted application needs an application date, so the record
+        // is created directly at the INTERVIEW status
+        Application application = tracker.createRecord(
                 "Google", "Software Engineer",
-                LocalDate.of(2026, 10, 19), "LinkedIn", null);
-        String id = application.getId();
-        tracker.updateStatus(id, ApplicationStatus.IN_PROGRESS);
-        tracker.updateStatus(id, ApplicationStatus.APPLIED);
-        tracker.updateStatus(id, ApplicationStatus.INTERVIEW);
-        return id;
+                LocalDate.of(2026, 10, 19), "LinkedIn", null,
+                ApplicationStatus.INTERVIEW, "");
+        return application.getId();
     }
 
     private static LocalDateTime date(int month, int day) {
@@ -59,7 +58,7 @@ public class InterviewRoundTest {
     private static void roundsOnlyAllowedAtInterviewStatus() {
         ApplicationTracker tracker = new ApplicationTracker();
         Application planned = tracker.createApplication(
-                "Amazon", "Intern", LocalDate.of(2026, 10, 19), "Handshake", null);
+                "Amazon", "Intern", null, "Handshake", null);
 
         expectThrows(IllegalStateException.class, () ->
                 tracker.addInterviewRound(planned.getId(), date(11, 3),
