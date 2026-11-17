@@ -44,22 +44,19 @@ public class InterviewStorageTest {
     // Creates an application and moves it to the INTERVIEW status
     private static Application newInterviewApplication(
             ApplicationTracker tracker) {
-        Application application = tracker.createApplication(
+        // a submitted application needs an application date, so the record
+        // is created directly at the INTERVIEW status
+        return tracker.createRecord(
                 "Apple", "Software Engineer",
-                LocalDate.of(2026, 11, 10), "LinkedIn", null);
-        String id = application.getId();
-        tracker.updateStatus(id, ApplicationStatus.IN_PROGRESS);
-        tracker.updateStatus(id, ApplicationStatus.APPLIED);
-        tracker.updateStatus(id, ApplicationStatus.INTERVIEW);
-        return application;
+                LocalDate.of(2026, 10, 19), "LinkedIn", null,
+                ApplicationStatus.INTERVIEW, "");
     }
 
     // Creates an application with no interview rounds, like one that has
     // just been restored from storage
     private static Application newPlainApplication(ApplicationTracker tracker) {
         return tracker.createApplication(
-                "Apple", "Software Engineer",
-                LocalDate.of(2026, 11, 10), "LinkedIn", null);
+                "Apple", "Software Engineer", null, "LinkedIn", null);
     }
 
     private static LocalDateTime date(int month, int day) {
