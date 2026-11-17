@@ -123,6 +123,112 @@ ChatGPT suggested:
 
 **Final result:** I developed a functional Application Tracker subsystem with a frontend, Java API, persistent storage, and connections to the Dashboard and Calendar. The main accomplishment was turning the Application Tracker from a standalone feature into a subsystem that can share real application data with other parts of our team's project.
 
+### 6. Application Tracker UI Improvements
+
+**Asked:** I asked ChatGPT to improve the Application Tracker's frontend design, make it consistent with our team's Dashboard, and organize the application information so users could navigate the tracker more easily.
+
+**Produced:** ChatGPT helped me revise the HTML, CSS, and JavaScript to improve the layout of the three application categories, application cards, details panel, and add/edit forms. The updated interface includes status labels, application counts, clearer form fields, and buttons for viewing and editing applications.
+
+**Changed or rejected:** I kept the three-column layout because it matched our original project requirements. I also focused on making the existing interface more usable instead of adding unnecessary features that would complicate the tracker.
+
+### 7. ApplicationApiServer.java — REST API Development
+
+**Asked:** I asked ChatGPT to help connect the Application Tracker frontend to the Java backend so application information could be created, retrieved, and updated through API requests.
+
+**Produced:** ChatGPT helped develop REST API endpoints in `ApplicationApiServer.java`, including GET requests for retrieving applications, POST requests for creating applications, and PUT requests for updating existing applications. The server processes form data, converts application objects into JSON, and returns error responses when requests contain invalid information.
+
+**Changed or rejected:** I kept the API structure compatible with the existing Java classes and frontend. I also made sure the Application Tracker endpoints could be used by other subsystems instead of creating a separate backend that only worked with my feature.
+
+### 8. ApplicationStorage.java — Persistent Data Storage
+
+**Asked:** I asked ChatGPT how to make application information remain saved after closing the browser or restarting the Java server.
+
+**Produced:** ChatGPT helped implement `ApplicationStorage.java`, which saves application information to a TSV file and loads the saved records when the server starts. The storage system preserves application IDs, company names, positions, dates, sources, statuses, and notes.
+
+**Changed or rejected:** I used file-based storage instead of introducing a database because it was sufficient for the current project requirements and easier to integrate with our existing Java implementation. I also made sure the storage format supported the additional application fields.
+
+### 9. Dashboard Integration
+
+**Asked:** I asked ChatGPT how to connect my Application Tracker to Daria's Dashboard so the Dashboard could display actual application counts instead of relying on manually entered or mock information.
+
+**Produced:** ChatGPT helped implement the `/api/applications/summary` endpoint, which returns the total number of applications and counts for planned, applied, and past applications. This provides a shared source of application data that the Dashboard can retrieve.
+
+**Changed or rejected:** I kept the existing Dashboard structure and focused on exposing the necessary information through the API. This avoided making unnecessary changes to Daria's feature while allowing the Dashboard to use real Application Tracker data.
+
+### 10. Calendar View Integration
+
+**Asked:** I asked ChatGPT how to make application deadlines available to Harshita's Calendar View without building a separate calendar inside the Application Tracker.
+
+**Produced:** ChatGPT helped connect application information, including deadlines, to the Calendar integration. We also kept the existing Calendar API registration in the Java server so the calendar functionality could operate alongside the Application Tracker.
+
+**Changed or rejected:** I decided to reuse Harshita's existing calendar implementation instead of creating another calendar. I focused on keeping the Application Tracker's date fields and API data compatible with the shared Calendar feature.
+
+### 11. Interview Tracker Integration
+
+**Asked:** I asked ChatGPT to help support Angelica's Interview Tracker by connecting interview rounds to specific applications and allowing interview information to be saved.
+
+**Produced:** ChatGPT helped implement API support for retrieving interview rounds, adding scheduled interviews, and saving interview notes. Interview records are associated with an application ID, allowing multiple interview rounds to be connected to the correct application.
+
+**Changed or rejected:** I kept interview information separate from the main application details while maintaining the connection through application IDs. I also retained the restriction that new interview rounds can only be scheduled when an application's status is Interview.
+
+### 12. Application Status and Date Validation
+
+**Asked:** While testing the Application Tracker, I noticed that the application date and status fields could become inconsistent. For example, users could select Planned while also entering a date indicating that they had already applied. I asked ChatGPT to fix these validation issues.
+
+**Produced:** ChatGPT helped update `Application.java`, `ApplicationTracker.java`, and the frontend form validation. Planned and In Progress applications no longer require an application date, while submitted applications require a valid date that cannot be in the future. The form also disables and clears the application date when a planning status is selected.
+
+**Changed or rejected:** I changed the original requirement that every application must have an application date because it did not make sense for applications that had not been submitted. I also added validation to the Java backend instead of relying only on frontend restrictions.
+
+### 13. Editing Applications and Correcting Statuses
+
+**Asked:** I asked ChatGPT to fix problems with editing applications, particularly when users needed to correct an incorrect status or update multiple fields at once.
+
+**Produced:** ChatGPT helped revise the application update logic so users could edit company names, positions, sources, deadlines, notes, application dates, and statuses. The updated code validates the information before modifying the existing application and supports correcting previously selected statuses.
+
+**Changed or rejected:** I kept the original status-transition validation for other parts of the application but allowed the edit form to correct mistakes. I also changed the update process so invalid information would not partially modify an existing record.
+
+### 14. Deleting Applications
+
+**Asked:** I noticed that the Application Tracker allowed users to create and edit applications but did not provide a way to remove them. I asked ChatGPT to add a delete feature that would also handle any interview records associated with the application.
+
+**Produced:** ChatGPT helped implement a DELETE endpoint in `ApplicationApiServer.java`, a `deleteApplication()` method in `ApplicationTracker.java`, and a Delete Application button in the frontend. The interface asks for confirmation before deleting, and the backend updates the saved application and interview records.
+
+**Changed or rejected:** I added a confirmation message to prevent accidental deletion. I also made sure deleting an application removed its associated interview information instead of leaving unrelated records in storage.
+
+### 15. Frontend Error Handling and Form Improvements
+
+**Asked:** I asked ChatGPT to improve the Application Tracker's usability by handling invalid inputs, failed saves, and repeated button clicks more effectively.
+
+**Produced:** ChatGPT helped add required-field validation, error messages, loading states, and protections against duplicate submissions. The frontend also preserves entered information when a save request fails, allowing users to correct the issue without reentering everything.
+
+**Changed or rejected:** I focused on preventing common user errors rather than adding more complicated functionality. I also kept validation on both the frontend and backend so invalid information would still be rejected if someone bypassed the interface.
+
+### 16. Debugging Java Compilation Errors
+
+**Asked:** After updating the Java backend, I encountered compilation errors in `ApplicationApiServer.java` and `Application.java`. I shared the terminal output with ChatGPT and asked for help identifying and fixing the problems.
+
+**Produced:** ChatGPT explained that a Python script had accidentally been pasted into the Java server file and provided the complete Java replacement code. It also identified a duplicate `restoreStatus()` method in `Application.java` that caused another compilation error.
+
+**Changed or rejected:** I replaced the incorrect server contents with Java code and removed the duplicate method while keeping the required functionality. I then recompiled the project using `javac` to check whether the errors were resolved.
+
+### 17. Application Tracker Testing and Edge Cases
+
+**Asked:** After implementing the changes, I asked ChatGPT to create specific testing tasks covering the Application Tracker's main features and possible edge cases.
+
+**Produced:** ChatGPT provided test scenarios for creating applications, validating required fields and dates, editing application details, changing statuses, adding interview rounds, saving interview notes, deleting applications, and checking whether data remained saved after restarting the server.
+
+**Changed or rejected:** I used specific test applications and performed the tests through the frontend instead of only checking whether the Java code compiled. I also included cases involving invalid inputs, canceled edits, deletion confirmation, and persistence to check how the system handled user mistakes.
+
+### 18. Final Application Tracker Improvements
+
+**Asked:** I asked ChatGPT to help finalize the Application Tracker by addressing the remaining functionality issues while preserving the existing connections to the Dashboard, Calendar View, Interview Tracker, and Readiness Checklist.
+
+**Produced:** ChatGPT helped revise the Application Tracker's Java classes, API server, storage logic, and frontend files. The updated implementation supports creating, viewing, editing, and deleting applications, validating statuses and dates, saving information persistently, and maintaining the shared application and interview endpoints.
+
+**Changed or rejected:** I prioritized fixing existing bugs and improving reliability instead of introducing additional features outside my assigned subsystem. I also avoided intentionally modifying my teammates' frontend implementations and kept the shared API structure compatible with the rest of the project.
+
+**Final result:** The Application Tracker now supports the main application-management workflow, including persistent storage, status tracking, date validation, editing, deletion, and interview integration. I also tested the feature using different application scenarios and edge cases before preparing the changes for GitHub.
+
 
 
 ## October 11, 2026
