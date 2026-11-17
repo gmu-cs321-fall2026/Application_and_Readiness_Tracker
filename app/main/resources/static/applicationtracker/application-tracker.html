@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Application Tracker</title>
 
-  <!-- Match the shared Dashboard styling -->
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../dashboard/dashboard.css">
   <link rel="stylesheet" href="application-tracker.css">
@@ -14,26 +13,24 @@
 
 <body>
   <main>
-    <h1>Application Tracker</h1>
-    <p class="sub">Manage your job applications in one place.</p>
+    <div class="tracker-header">
+      <div>
+        <h1>Application Tracker</h1>
+        <p class="sub">Manage your job applications in one place.</p>
+      </div>
 
-    <!-- Shared navigation -->
-    <nav aria-label="Views">
-      <a class="navlink" href="../dashboard/index.html">Dashboard</a>
-      <a class="navlink" href="../calendar/calendar_view.html">Calendar</a>
-      <button type="button" aria-pressed="true">
-        Application Tracker
-      </button>
-    </nav>
+      <a class="back-dashboard" href="../dashboard/index.html">
+        &larr; Back to Dashboard
+      </a>
+    </div>
 
-    <!-- Add application -->
     <div class="tracker-actions">
       <button id="addApplicationBtn" type="button" class="primary-btn">
         + Add Application
       </button>
     </div>
 
-    <!-- Add/Edit application form -->
+    <!-- Add/Edit application -->
     <section id="applicationFormPanel" class="panel form-panel hide">
       <h2 id="formTitle">Add New Application</h2>
 
@@ -82,23 +79,22 @@
           </label>
         </div>
 
-        <label>
+        <label class="notes-label">
           Notes (optional)
           <textarea id="notes" rows="3"></textarea>
         </label>
 
         <div class="form-actions">
           <button id="cancelApplicationBtn" type="button">Cancel</button>
-          <button type="submit" class="primary-btn" id="saveApplicationBtn">
+          <button id="saveApplicationBtn" type="submit" class="primary-btn">
             Save Application
           </button>
         </div>
       </form>
     </section>
 
-    <!-- Three application sections -->
+    <!-- Application board -->
     <section class="tracker-board" aria-label="Applications by status">
-
       <div class="col">
         <h3>
           Plan to Apply
@@ -130,63 +126,6 @@
       </div>
     </section>
 
-    <!-- Shared Readiness Checklist -->
-    <section id="readinessPanel" class="panel readiness-panel"
-             aria-labelledby="readinessTitle">
-
-      <div class="readiness-header">
-        <div>
-          <h2 id="readinessTitle">Readiness Checklist</h2>
-          <p class="mute">
-            Track your overall preparation for applications and interviews.
-          </p>
-        </div>
-
-        <strong id="readinessProgressLabel" class="readiness-progress-label">
-          0 of 8 complete
-        </strong>
-      </div>
-
-      <div id="readinessProgress" class="readiness-progress-track"
-           role="progressbar"
-           aria-label="Readiness completion"
-           aria-valuemin="0"
-           aria-valuemax="100"
-           aria-valuenow="0">
-        <div id="readinessProgressFill"
-             class="readiness-progress-fill"></div>
-      </div>
-
-      <div id="readinessList" class="readiness-list" aria-live="polite">
-        <p class="mute">Loading readiness tasks...</p>
-      </div>
-
-      <form id="readinessAddForm" class="readiness-add-form">
-        <label for="readinessNewTitle">Add a Custom Task</label>
-
-        <div class="readiness-add-row">
-          <input id="readinessNewTitle"
-                 type="text"
-                 placeholder="e.g. Prepare cover letter"
-                 required>
-
-          <button type="submit" class="primary-btn">
-            + Add Task
-          </button>
-        </div>
-      </form>
-
-      <div class="readiness-footer">
-        <button id="readinessCompleteAll" type="button">
-          Mark All Complete
-        </button>
-
-        <button id="readinessReset" type="button">
-          Reset Checklist
-        </button>
-      </div>
-    </section>
-
     <!-- Application details and interview integration -->
     <section id="detailsPanel" class="panel details-panel hide"
              aria-labelledby="detailsTitle">
@@ -203,7 +142,6 @@
 
       <!-- Interview Stage Tracker -->
       <section class="interview-section" aria-labelledby="interviewTitle">
-
         <div class="interview-heading">
           <div>
             <h3 id="interviewTitle">Interview Rounds</h3>
@@ -211,7 +149,6 @@
               Track scheduled interviews and record notes for each round.
             </p>
           </div>
-
           <span class="interview-count" id="interviewCount">0 rounds</span>
         </div>
 
@@ -261,19 +198,16 @@
 
             <div class="form-actions">
               <button id="cancelInterviewBtn" type="button">Cancel</button>
-              <button type="submit" class="primary-btn"
-                      id="saveInterviewBtn">
+              <button id="saveInterviewBtn" type="submit" class="primary-btn">
                 Save Interview
               </button>
             </div>
           </form>
         </div>
 
-        <button id="addInterviewBtn" type="button"
-                class="primary-btn hide">
+        <button id="addInterviewBtn" type="button" class="primary-btn hide">
           + Add Interview Round
         </button>
-
       </section>
 
       <div class="form-actions">
@@ -281,7 +215,6 @@
           Edit Application
         </button>
       </div>
-
     </section>
   </main>
 
