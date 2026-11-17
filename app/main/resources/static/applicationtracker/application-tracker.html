@@ -5,12 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Application Tracker</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../dashboard/dashboard.css">
   <link rel="stylesheet" href="application-tracker.css">
 </head>
-
 <body>
   <main>
     <div class="tracker-header">
@@ -18,11 +16,13 @@
         <h1>Application Tracker</h1>
         <p class="sub">Manage your job applications in one place.</p>
       </div>
-
       <a class="back-dashboard" href="../dashboard/index.html">
         &larr; Back to Dashboard
       </a>
     </div>
+
+    <div id="trackerMessage" class="tracker-message" role="status"
+         aria-live="polite" hidden></div>
 
     <div class="tracker-actions">
       <button id="addApplicationBtn" type="button" class="primary-btn">
@@ -30,31 +30,36 @@
       </button>
     </div>
 
-    <!-- Add/Edit application -->
+    <!-- Add/Edit Application -->
     <section id="applicationFormPanel" class="panel form-panel hide">
       <h2 id="formTitle">Add New Application</h2>
 
-      <form id="applicationForm">
+      <form id="applicationForm" novalidate>
         <div class="form-grid">
           <label>
             Company *
-            <input id="employer" type="text" required>
+            <input id="employer" type="text" required maxlength="150"
+                   autocomplete="organization">
+            <span class="field-error" data-error-for="employer"></span>
           </label>
 
           <label>
             Position *
-            <input id="role" type="text" required>
+            <input id="role" type="text" required maxlength="150">
+            <span class="field-error" data-error-for="role"></span>
           </label>
 
           <label>
             Application Date *
             <input id="applicationDate" type="date" required>
+            <span class="field-error" data-error-for="applicationDate"></span>
           </label>
 
           <label>
             Source *
-            <input id="source" type="text"
-                   placeholder="LinkedIn, Handshake, etc." required>
+            <input id="source" type="text" required maxlength="150"
+                   placeholder="LinkedIn, Handshake, etc.">
+            <span class="field-error" data-error-for="source"></span>
           </label>
 
           <label>
@@ -81,7 +86,8 @@
 
         <label class="notes-label">
           Notes (optional)
-          <textarea id="notes" rows="3"></textarea>
+          <textarea id="notes" rows="3"
+                    placeholder="Add any useful application details..."></textarea>
         </label>
 
         <div class="form-actions">
@@ -93,43 +99,33 @@
       </form>
     </section>
 
-    <!-- Application board -->
+    <!-- Application Board -->
     <section class="tracker-board" aria-label="Applications by status">
       <div class="col">
-        <h3>
-          Plan to Apply
-          <span class="count" id="plannedCount">0</span>
-        </h3>
+        <h3>Plan to Apply <span class="count" id="plannedCount">0</span></h3>
         <div id="plannedApplications">
           <p class="mute">No applications yet.</p>
         </div>
       </div>
 
       <div class="col">
-        <h3>
-          Applied
-          <span class="count" id="appliedCount">0</span>
-        </h3>
+        <h3>Applied <span class="count" id="appliedCount">0</span></h3>
         <div id="appliedApplications">
           <p class="mute">No applications yet.</p>
         </div>
       </div>
 
       <div class="col">
-        <h3>
-          Past Applications
-          <span class="count" id="pastCount">0</span>
-        </h3>
+        <h3>Past Applications <span class="count" id="pastCount">0</span></h3>
         <div id="pastApplications">
           <p class="mute">No applications yet.</p>
         </div>
       </div>
     </section>
 
-    <!-- Application details and interview integration -->
+    <!-- Application Details -->
     <section id="detailsPanel" class="panel details-panel hide"
              aria-labelledby="detailsTitle">
-
       <div class="details-header">
         <div>
           <h2 id="detailsTitle">Application Details</h2>
@@ -140,7 +136,7 @@
 
       <div id="detailsContent"></div>
 
-      <!-- Interview Stage Tracker -->
+      <!-- Interview Rounds -->
       <section class="interview-section" aria-labelledby="interviewTitle">
         <div class="interview-heading">
           <div>
@@ -164,11 +160,12 @@
         <div id="interviewFormPanel" class="interview-form-panel hide">
           <h4>Schedule Interview Round</h4>
 
-          <form id="interviewForm">
+          <form id="interviewForm" novalidate>
             <div class="form-grid">
               <label>
                 Date and Time *
                 <input id="interviewDateTime" type="datetime-local" required>
+                <span class="field-error" data-error-for="interviewDateTime"></span>
               </label>
 
               <label>

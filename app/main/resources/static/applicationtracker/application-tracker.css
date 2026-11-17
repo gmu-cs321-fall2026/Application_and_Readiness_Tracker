@@ -1,8 +1,6 @@
 
-/*
- * Application Tracker styles
- * Uses shared dashboard.css variables for theme consistency.
- */
+/* Application Tracker styles.
+   Uses shared dashboard.css variables. */
 
 .tracker-header {
   display: flex;
@@ -13,13 +11,8 @@
   margin-bottom: 24px;
 }
 
-.tracker-header h1 {
-  margin-bottom: 8px;
-}
-
-.tracker-header .sub {
-  margin-bottom: 0;
-}
+.tracker-header h1 { margin-bottom: 8px; }
+.tracker-header .sub { margin-bottom: 0; }
 
 .back-dashboard {
   display: inline-flex;
@@ -55,9 +48,7 @@
   font-weight: 600;
 }
 
-.primary-btn:hover {
-  opacity: 0.9;
-}
+.primary-btn:hover { opacity: 0.9; }
 
 /* Application board */
 
@@ -74,6 +65,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .card-heading {
@@ -84,25 +79,28 @@
 }
 
 .card-heading b {
-  font-size: 1rem;
-  line-height: 1.3;
+  display: block;
+  font-size: 1.07rem;
+  line-height: 1.4;
 }
 
 .card-heading .role {
   display: block;
   color: var(--mute);
   font-size: 0.88rem;
-  margin-top: 3px;
+  line-height: 1.5;
+  margin-top: 5px;
 }
 
 .status-badge {
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 999px;
   background: var(--accentbg);
   color: var(--accent);
   font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1.3;
   white-space: nowrap;
 }
 
@@ -118,17 +116,26 @@
 }
 
 .card-date {
+  margin-top: 2px;
   font-size: 0.85rem;
+  line-height: 1.5;
   color: var(--mute);
+}
+
+.card-date strong {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .card-footer {
   border-top: 1px solid var(--line);
   padding-top: 8px;
+  margin-top: auto;
 }
 
 .details-link {
   width: 100%;
+  min-height: 36px;
   text-align: left;
   color: var(--accent);
   background: transparent;
@@ -138,15 +145,16 @@
   cursor: pointer;
 }
 
-.details-link:hover {
-  text-decoration: underline;
+.details-link:hover { text-decoration: underline; }
+
+.empty-state {
+  padding: 12px 4px;
+  line-height: 1.5;
 }
 
 /* Application details */
 
-.details-panel {
-  margin-top: 16px;
-}
+.details-panel { margin-top: 16px; }
 
 .details-header {
   display: flex;
@@ -156,13 +164,8 @@
   margin-bottom: 16px;
 }
 
-.details-header h2 {
-  margin-bottom: 4px;
-}
-
-.details-header p {
-  margin: 0;
-}
+.details-header h2 { margin-bottom: 4px; }
+.details-header p { margin: 0; }
 
 .details-grid {
   display: grid;
@@ -194,9 +197,7 @@
 
 /* Application form */
 
-.form-panel {
-  margin-bottom: 16px;
-}
+.form-panel { margin-bottom: 16px; }
 
 .form-grid {
   display: grid;
@@ -219,17 +220,18 @@
 #interviewForm input,
 #interviewForm select {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 9px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--panel);
   color: var(--ink);
   font: inherit;
+  box-sizing: border-box;
 }
 
-#applicationForm textarea {
-  resize: vertical;
-}
+#applicationForm textarea { resize: vertical; }
 
 .form-actions {
   display: flex;
@@ -237,6 +239,16 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
+}
+
+.field-error {
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.tracker-invalid {
+  border-color: #b91c1c !important;
 }
 
 /* Interview Tracker */
@@ -255,9 +267,7 @@
   margin-bottom: 16px;
 }
 
-.interview-heading h3 {
-  margin: 0 0 5px;
-}
+.interview-heading h3 { margin: 0 0 5px; }
 
 .interview-heading p {
   margin: 0;
@@ -284,7 +294,7 @@
 .interview-card {
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--panel);
 }
 
@@ -299,6 +309,7 @@
 .interview-card-header h4 {
   margin: 0 0 5px;
   font-size: 0.98rem;
+  line-height: 1.45;
 }
 
 .interview-card-header p {
@@ -308,7 +319,7 @@
 
 .interview-format {
   padding: 5px 9px;
-  border-radius: 5px;
+  border-radius: 999px;
   border: 1px solid var(--line);
   color: var(--mute);
   font-size: 0.78rem;
@@ -323,6 +334,7 @@
 .interview-notes p {
   margin: 5px 0 0;
   font-size: 0.9rem;
+  line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -342,18 +354,19 @@
 
 .interview-notes-form textarea {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 9px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--panel);
   color: var(--ink);
   font: inherit;
   resize: vertical;
+  box-sizing: border-box;
 }
 
-.interview-note-btn {
-  font-size: 0.85rem;
-}
+.interview-note-btn { font-size: 0.85rem; }
 
 .interview-form-panel {
   padding: 16px;
@@ -363,9 +376,7 @@
   background: var(--panel);
 }
 
-.interview-form-panel h4 {
-  margin: 0 0 14px;
-}
+.interview-form-panel h4 { margin: 0 0 14px; }
 
 .interview-message {
   padding: 12px;
@@ -381,14 +392,43 @@
   font-size: 0.88rem;
 }
 
-#addInterviewBtn {
-  margin-top: 4px;
+#addInterviewBtn { margin-top: 4px; }
+
+/* Save notifications */
+
+.tracker-message {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  max-width: min(390px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: #244b3c;
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
 }
 
-#saveInterviewBtn:disabled,
-.interview-note-btn:disabled {
+.tracker-message.error { background: #9b3030; }
+.tracker-message[hidden] { display: none; }
+
+/* Accessibility and button states */
+
+button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.details-link:focus-visible,
+.back-dashboard:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 /* Responsive layout */
@@ -396,6 +436,7 @@
 @media (max-width: 760px) {
   .tracker-header {
     flex-direction: column;
+    gap: 14px;
   }
 
   .tracker-board,
@@ -404,13 +445,37 @@
     grid-template-columns: 1fr;
   }
 
-  .detail-notes {
-    grid-column: auto;
-  }
+  .tracker-board { gap: 16px; }
+  .detail-notes { grid-column: auto; }
+
+  .tracker-actions { justify-content: stretch; }
+  .tracker-actions button { width: 100%; }
+
+  .back-dashboard { white-space: normal; }
 
   .interview-heading,
   .interview-card-header {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .form-actions { gap: 10px; }
+  .form-actions button { min-height: 42px; }
+  .interview-card { padding: 14px; }
+
+  .tracker-message {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .form-actions button { flex: 1 1 auto; }
+  .interview-format { white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-dashboard { transition: none; }
 }

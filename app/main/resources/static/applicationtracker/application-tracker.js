@@ -1,12 +1,15 @@
 
-const API = "/api/applications";
+/* Application Tracker — usability polish; existing Java API unchanged. */
 
+const API = "/api/applications";
 const $ = id => document.getElementById(id);
 
 const addBtn = $("addApplicationBtn");
 const cancelBtn = $("cancelApplicationBtn");
 const formPanel = $("applicationFormPanel");
 const form = $("applicationForm");
+const saveApplicationBtn = $("saveApplicationBtn");
+
 const detailsPanel = $("detailsPanel");
 const detailsContent = $("detailsContent");
 const closeDetailsBtn = $("closeDetailsBtn");
@@ -21,9 +24,14 @@ const cancelInterviewBtn = $("cancelInterviewBtn");
 const saveInterviewBtn = $("saveInterviewBtn");
 const interviewStatusMessage = $("interviewStatusMessage");
 
+const message = $("trackerMessage");
+
 let applications = [];
 let selectedApplicationId = null;
 let editingApplicationId = null;
+let applicationSaving = false;
+let interviewSaving = false;
+let messageTimeout;
 
 const statusLabels = {
   PLANNED: "Planned",
@@ -59,11 +67,8 @@ const interviewFormatLabels = {
 const groups = {
   planned: ["PLANNED", "IN_PROGRESS"],
   applied: [
-    "APPLIED",
-    "ONLINE_ASSESSMENT",
-    "PHONE_SCREEN",
-    "INTERVIEW",
-    "OFFER"
+    "APPLIED", "ONLINE_ASSESSMENT", "PHONE_SCREEN",
+    "INTERVIEW", "OFFER"
   ],
   past: ["ACCEPTED", "REJECTED", "WITHDRAWN"]
 };
@@ -83,53 +88,74 @@ const sections = {
   }
 };
 
-// Utilities
+/* Helpers */
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#39;"
-  })[char]);
+  })[ch]);
+}
+
+function notify(text, type = "success") {
+  clearTimeout(messageTimeout);
+
+  message.textContent = text;
+  message.className = `tracker-message ${type}`;
+  message.hidden = false;
+
+  messageTimeout = setTimeout(() => {
+    message.hidden = true;
+  }, 5000);
 }
 
 function formatDate(value) {
   if (!value) return "Not provided";
 
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
 
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  });
+  const date = new Date(
+    +match[1],
+    +match[2] - 1,
+    +match[3]
+  );
+
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
 }
 
 function formatInterviewDate(value) {
   if (!value) return "Not scheduled";
 
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
 
-  return date.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
 }
 
 function todayLocal() {
-  const today = new Date();
+  const date = new Date();
 
   return [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, "0"),
-    String(today.getDate()).padStart(2, "0")
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0")
   ].join("-");
 }
 
@@ -139,75 +165,55 @@ function getGroup(status) {
   );
 }
 
-async function readResponse(response, fallback) {
-  const result = await response.json();
+/* Application Cards */
 
-  if (!response.ok) {
-    throw new Error(result.error || fallback);
-  }
+function renderCard(app) {
+  const group = getGroup(app.status);
 
-  return result;
-}
+  const badge = group === "planned"
+    ? "planned"
+    : group === "past"
+      ? "past"
+      : "";
 
-function postForm(url, fields) {
-  return fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams(fields).toString()
-  });
-}
+  const dateLabel = group === "past"
+    ? "Application date"
+    : "Deadline";
 
-// Application cards
-
-function renderCard(application) {
-  const group = getGroup(application.status);
-
-  const badgeClass =
-    group === "planned" ? "planned" :
-    group === "past" ? "past" : "";
-
-  const dateLabel =
-    group === "past" ? "Application date" : "Deadline";
-
-  const dateValue =
-    group === "past"
-      ? application.applicationDate
-      : application.deadline;
+  const dateValue = group === "past"
+    ? app.applicationDate
+    : app.deadline;
 
   return `
-    <div class="card application-card">
+    <article class="card application-card">
       <div class="card-heading">
         <div>
-          <b>${escapeHtml(application.employer)}</b>
-          <span class="role">
-            ${escapeHtml(application.role)}
-          </span>
+          <b>${escapeHtml(app.employer)}</b>
+          <span class="role">${escapeHtml(app.role)}</span>
         </div>
       </div>
 
       <div>
-        <span class="status-badge ${badgeClass}">
-          ${escapeHtml(
-            statusLabels[application.status] || application.status
-          )}
+        <span class="status-badge ${badge}">
+          ${escapeHtml(statusLabels[app.status] || app.status)}
         </span>
       </div>
 
       <div class="card-date">
-        ${dateLabel}: ${escapeHtml(formatDate(dateValue))}
+        <span>${dateLabel}:</span>
+        <strong>${escapeHtml(formatDate(dateValue))}</strong>
       </div>
 
       <div class="card-footer">
         <button
           type="button"
           class="details-link"
-          data-id="${escapeHtml(application.id)}">
-          View Details &rarr;
+          data-id="${escapeHtml(app.id)}"
+          aria-label="View application details for ${escapeHtml(app.employer)}">
+          View Application Details →
         </button>
       </div>
-    </div>
+    </article>
   `;
 }
 
@@ -219,47 +225,70 @@ function renderApplications() {
 
     $(sections[group].count).textContent = filtered.length;
 
-    $(sections[group].container).innerHTML =
-      filtered.length
-        ? filtered.map(renderCard).join("")
-        : '<p class="mute">No applications yet.</p>';
+    $(sections[group].container).innerHTML = filtered.length
+      ? filtered.map(renderCard).join("")
+      : '<p class="mute empty-state">No applications yet.</p>';
   }
+}
+
+/* Backend API */
+
+async function requestJson(url, options) {
+  let response;
+
+  try {
+    response = await fetch(url, options);
+  } catch {
+    throw new Error(
+      "Cannot connect to the server. Check that it is running and try again."
+    );
+  }
+
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      result?.error || `Request failed (${response.status}).`
+    );
+  }
+
+  if (result === null) {
+    throw new Error("The server returned an unexpected response.");
+  }
+
+  return result;
 }
 
 async function loadApplications() {
-  const response = await fetch(API);
+  const result = await requestJson(API);
 
-  if (!response.ok) {
-    throw new Error("Could not load applications.");
+  if (!Array.isArray(result)) {
+    throw new Error("The application list has an unexpected format.");
   }
 
-  applications = await response.json();
+  applications = result;
   renderApplications();
 }
 
-// Application details
+/* Application Details */
 
 function detailField(label, value, extraClass = "") {
   return `
     <div class="detail-item ${extraClass}">
-      <span class="detail-label">
-        ${escapeHtml(label)}
-      </span>
-      <div class="detail-value">
-        ${escapeHtml(value)}
-      </div>
+      <span class="detail-label">${escapeHtml(label)}</span>
+      <div class="detail-value">${escapeHtml(value)}</div>
     </div>
   `;
 }
 
 async function showDetails(id) {
-  const app = applications.find(
-    item => String(item.id) === String(id)
+  const app = applications.find(item =>
+    String(item.id) === String(id)
   );
 
   if (!app) return;
 
-  selectedApplicationId = app.id;
+  selectedApplicationId = String(app.id);
 
   $("detailsTitle").textContent = app.employer;
   $("detailsSubtitle").textContent = app.role;
@@ -284,20 +313,14 @@ async function showDetails(id) {
     </div>
   `;
 
-  const canAddInterview = app.status === "INTERVIEW";
+  const canAdd = app.status === "INTERVIEW";
 
-  addInterviewBtn.classList.toggle(
-    "hide",
-    !canAddInterview
-  );
-
-  interviewStatusMessage.classList.toggle(
-    "hide",
-    canAddInterview
-  );
+  addInterviewBtn.classList.toggle("hide", !canAdd);
+  interviewStatusMessage.classList.toggle("hide", canAdd);
 
   interviewFormPanel.classList.add("hide");
   interviewForm.reset();
+  clearErrors(interviewForm);
 
   detailsPanel.classList.remove("hide");
 
@@ -306,33 +329,35 @@ async function showDetails(id) {
     block: "start"
   });
 
-  await loadInterviews(app.id);
+  await loadInterviews(String(app.id));
 }
 
-// Interview Tracker
+/* Interview Rounds */
 
 async function loadInterviews(applicationId) {
   interviewList.innerHTML =
     '<p class="mute">Loading interviews...</p>';
 
   try {
-    const response = await fetch(
+    const result = await requestJson(
       `${API}/${encodeURIComponent(applicationId)}/interviews`
     );
 
-    const rounds = await readResponse(
-      response,
-      "Could not load interviews."
-    );
+    if (!Array.isArray(result)) {
+      throw new Error("The interview list has an unexpected format.");
+    }
 
     if (selectedApplicationId !== applicationId) return;
 
-    renderInterviews(rounds);
+    renderInterviews(result);
+
   } catch (error) {
     if (selectedApplicationId !== applicationId) return;
 
+    interviewCount.textContent = "—";
+
     interviewList.innerHTML = `
-      <p class="interview-error">
+      <p class="interview-error" role="alert">
         ${escapeHtml(error.message)}
       </p>
     `;
@@ -340,30 +365,32 @@ async function loadInterviews(applicationId) {
 }
 
 function renderInterviews(rounds) {
-  interviewCount.textContent =
-    `${rounds.length} ${rounds.length === 1 ? "round" : "rounds"}`;
+  const sorted = [...rounds].sort(
+    (a, b) => Number(a.roundNumber) - Number(b.roundNumber)
+  );
 
-  if (!rounds.length) {
+  interviewCount.textContent =
+    `${sorted.length} ${sorted.length === 1 ? "round" : "rounds"}`;
+
+  if (!sorted.length) {
     interviewList.innerHTML =
-      '<p class="mute">No interview rounds recorded yet.</p>';
+      '<p class="mute empty-state">No interview rounds recorded yet.</p>';
     return;
   }
 
-  interviewList.innerHTML = rounds.map(round => `
+  interviewList.innerHTML = sorted.map(round => `
     <article class="interview-card">
       <div class="interview-card-header">
         <div>
           <h4>
-            Round ${round.roundNumber} —
+            Round ${escapeHtml(round.roundNumber)} —
             ${escapeHtml(
               interviewTypeLabels[round.type] || round.type
             )}
           </h4>
 
           <p class="mute">
-            ${escapeHtml(
-              formatInterviewDate(round.scheduledAt)
-            )}
+            ${escapeHtml(formatInterviewDate(round.scheduledAt))}
           </p>
         </div>
 
@@ -383,7 +410,7 @@ function renderInterviews(rounds) {
 
       <form
         class="interview-notes-form"
-        data-round="${round.roundNumber}">
+        data-round="${escapeHtml(round.roundNumber)}">
 
         <label>
           Add Notes
@@ -404,125 +431,93 @@ function renderInterviews(rounds) {
   `).join("");
 }
 
-// Open interview form
+/* Form Validation */
 
-addInterviewBtn.addEventListener("click", () => {
-  interviewForm.reset();
-  interviewFormPanel.classList.remove("hide");
-  addInterviewBtn.classList.add("hide");
+function clearFieldError(field) {
+  field.classList.remove("tracker-invalid");
+  field.removeAttribute("aria-invalid");
 
-  interviewFormPanel.scrollIntoView({
-    behavior: "smooth",
-    block: "nearest"
+  const error = field.closest("label")?.querySelector(".field-error");
+
+  if (error) error.remove();
+}
+
+function clearErrors(targetForm) {
+  targetForm.querySelectorAll(
+    "input, select, textarea"
+  ).forEach(clearFieldError);
+}
+
+function invalidField(field, text) {
+  clearFieldError(field);
+
+  field.classList.add("tracker-invalid");
+  field.setAttribute("aria-invalid", "true");
+
+  const error = document.createElement("span");
+  error.className = "field-error";
+  error.textContent = text;
+
+  field.insertAdjacentElement("afterend", error);
+}
+
+function validate(targetForm) {
+  clearErrors(targetForm);
+
+  let firstInvalid = null;
+
+  targetForm.querySelectorAll(
+    "input, select, textarea"
+  ).forEach(field => {
+    if (field.disabled) return;
+
+    let text = "";
+
+    if (field.required && !field.value.trim()) {
+      text = "This field is required.";
+    } else if (!field.checkValidity()) {
+      text = field.validationMessage || "Enter a valid value.";
+    }
+
+    if (text) {
+      invalidField(field, text);
+      if (!firstInvalid) firstInvalid = field;
+    }
   });
-});
 
-// Cancel interview form
-
-cancelInterviewBtn.addEventListener("click", () => {
-  interviewForm.reset();
-  interviewFormPanel.classList.add("hide");
-
-  const app = applications.find(
-    item => item.id === selectedApplicationId
-  );
-
-  if (app?.status === "INTERVIEW") {
-    addInterviewBtn.classList.remove("hide");
+  if (firstInvalid) {
+    firstInvalid.focus();
+    notify("Please correct the highlighted fields.", "error");
+    return false;
   }
-});
 
-// Schedule interview
+  return true;
+}
 
-interviewForm.addEventListener("submit", async event => {
-  event.preventDefault();
+for (const targetForm of [form, interviewForm]) {
+  targetForm.noValidate = true;
 
-  const applicationId = selectedApplicationId;
-  if (!applicationId) return;
-
-  const fields = {
-    scheduledAt: $("interviewDateTime").value,
-    type: $("interviewType").value,
-    format: $("interviewFormat").value
-  };
-
-  saveInterviewBtn.disabled = true;
-
-  try {
-    const response = await postForm(
-      `${API}/${encodeURIComponent(applicationId)}/interviews`,
-      fields
-    );
-
-    await readResponse(response, "Could not add interview.");
-
-    interviewForm.reset();
-    interviewFormPanel.classList.add("hide");
-
-    if (selectedApplicationId === applicationId) {
-      addInterviewBtn.classList.remove("hide");
-      await loadInterviews(applicationId);
+  targetForm.addEventListener("input", event => {
+    if (event.target.matches("input, textarea")) {
+      clearFieldError(event.target);
     }
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    saveInterviewBtn.disabled = false;
-  }
-});
+  });
 
-// Save interview notes
-
-interviewList.addEventListener("submit", async event => {
-  const notesForm = event.target.closest(
-    ".interview-notes-form"
-  );
-
-  if (!notesForm) return;
-  event.preventDefault();
-
-  const applicationId = selectedApplicationId;
-  if (!applicationId) return;
-
-  const roundNumber = notesForm.dataset.round;
-  const notes = notesForm.elements.notes.value.trim();
-
-  if (!notes) return;
-
-  const submitBtn = notesForm.querySelector(
-    'button[type="submit"]'
-  );
-
-  submitBtn.disabled = true;
-
-  try {
-    const response = await postForm(
-      `${API}/${encodeURIComponent(applicationId)}` +
-      `/interviews/${roundNumber}/notes`,
-      { notes }
-    );
-
-    await readResponse(
-      response,
-      "Could not save interview notes."
-    );
-
-    if (selectedApplicationId === applicationId) {
-      await loadInterviews(applicationId);
+  targetForm.addEventListener("change", event => {
+    if (event.target.matches("input, select, textarea")) {
+      clearFieldError(event.target);
     }
-  } catch (error) {
-    alert(error.message);
-    submitBtn.disabled = false;
-  }
-});
+  });
+}
 
-// Application form
+/* Add/Edit Application */
 
 function setFormMode(isEditing) {
   $("formTitle").textContent = isEditing
     ? "Edit Application"
     : "Add New Application";
 
-  $("saveApplicationBtn").textContent = isEditing
+  saveApplicationBtn.textContent = isEditing
     ? "Save Changes"
     : "Save Application";
 
@@ -533,24 +528,39 @@ function setFormMode(isEditing) {
   }
 }
 
-// Add application
-
-addBtn.addEventListener("click", () => {
-  editingApplicationId = null;
-  form.reset();
-  setFormMode(false);
-
-  $("applicationDate").value = todayLocal();
-
+function openApplicationForm() {
   formPanel.classList.remove("hide");
 
   formPanel.scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
+
+  $("employer").focus({preventScroll: true});
+}
+
+addBtn.addEventListener("click", () => {
+  if (applicationSaving) return;
+
+  editingApplicationId = null;
+  form.reset();
+  clearErrors(form);
+  setFormMode(false);
+
+  $("applicationDate").value = todayLocal();
+
+  openApplicationForm();
 });
 
-// Open application details
+cancelBtn.addEventListener("click", () => {
+  if (applicationSaving) return;
+
+  formPanel.classList.add("hide");
+  form.reset();
+  clearErrors(form);
+
+  editingApplicationId = null;
+});
 
 document.querySelector(".tracker-board").addEventListener(
   "click",
@@ -563,57 +573,55 @@ document.querySelector(".tracker-board").addEventListener(
   }
 );
 
-// Close details
-
 closeDetailsBtn.addEventListener("click", () => {
+  if (interviewSaving) return;
+
   detailsPanel.classList.add("hide");
+  interviewFormPanel.classList.add("hide");
+
   selectedApplicationId = null;
 });
 
-// Edit application
-
 editBtn.addEventListener("click", () => {
-  const app = applications.find(
-    item => item.id === selectedApplicationId
+  if (applicationSaving) return;
+
+  const app = applications.find(item =>
+    String(item.id) === selectedApplicationId
   );
 
   if (!app) return;
 
-  editingApplicationId = app.id;
+  editingApplicationId = String(app.id);
 
   form.reset();
+  clearErrors(form);
   setFormMode(true);
 
-  $("employer").value = app.employer;
-  $("role").value = app.role;
+  $("employer").value = app.employer || "";
+  $("role").value = app.role || "";
   $("applicationDate").value = app.applicationDate || "";
-  $("source").value = app.source;
+  $("source").value = app.source || "";
   $("deadline").value = app.deadline || "";
   $("status").value = app.status;
   $("notes").value = app.notes || "";
 
-  formPanel.classList.remove("hide");
-
-  formPanel.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+  openApplicationForm();
 });
 
-// Cancel application form
-
-cancelBtn.addEventListener("click", () => {
-  formPanel.classList.add("hide");
-  form.reset();
-  editingApplicationId = null;
-});
-
-// Create or update application
+/* Save Application */
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
 
-  const fields = {
+  if (applicationSaving || !validate(form)) return;
+
+  const isEditing = Boolean(editingApplicationId);
+
+  const url = isEditing
+    ? `${API}/${encodeURIComponent(editingApplicationId)}`
+    : API;
+
+  const data = new URLSearchParams({
     employer: $("employer").value.trim(),
     role: $("role").value.trim(),
     applicationDate: $("applicationDate").value,
@@ -621,51 +629,241 @@ form.addEventListener("submit", async event => {
     deadline: $("deadline").value,
     status: $("status").value,
     notes: $("notes").value.trim()
-  };
+  });
 
-  const isEditing = editingApplicationId !== null;
+  applicationSaving = true;
 
-  const url = isEditing
-    ? `${API}/${encodeURIComponent(editingApplicationId)}`
-    : API;
-
-  const saveBtn = $("saveApplicationBtn");
-  saveBtn.disabled = true;
+  saveApplicationBtn.disabled = true;
+  cancelBtn.disabled = true;
+  saveApplicationBtn.textContent = "Saving...";
 
   try {
-    const response = await fetch(url, {
+    const result = await requestJson(url, {
       method: isEditing ? "PUT" : "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       },
-      body: new URLSearchParams(fields).toString()
+      body: data.toString()
     });
 
-    const result = await readResponse(
-      response,
-      "Could not save application."
+    notify(
+      isEditing
+        ? "Application updated successfully."
+        : "Application added successfully."
     );
 
-    const savedId = result.id ?? editingApplicationId;
-
-    await loadApplications();
-
     form.reset();
+    clearErrors(form);
     formPanel.classList.add("hide");
+
     editingApplicationId = null;
 
-    if (!detailsPanel.classList.contains("hide") && savedId != null) {
-      await showDetails(savedId);
+    try {
+      await loadApplications();
+
+      if (
+        !detailsPanel.classList.contains("hide") &&
+        result.id != null
+      ) {
+        await showDetails(String(result.id));
+      }
+
+    } catch (error) {
+      notify(
+        "Saved, but the application list could not refresh. Reload the page to see the update.",
+        "error"
+      );
+
+      console.error(error);
     }
+
   } catch (error) {
-    alert(error.message);
+    notify(
+      `${error.message} Your entered information is still here.`,
+      "error"
+    );
+
   } finally {
-    saveBtn.disabled = false;
+    applicationSaving = false;
+
+    saveApplicationBtn.disabled = false;
+    cancelBtn.disabled = false;
+
+    setFormMode(Boolean(editingApplicationId));
   }
 });
 
-// Startup
+/* Schedule Interview */
+
+addInterviewBtn.addEventListener("click", () => {
+  if (interviewSaving) return;
+
+  interviewForm.reset();
+  clearErrors(interviewForm);
+
+  interviewFormPanel.classList.remove("hide");
+  addInterviewBtn.classList.add("hide");
+
+  interviewFormPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest"
+  });
+
+  $("interviewDateTime").focus({preventScroll: true});
+});
+
+cancelInterviewBtn.addEventListener("click", () => {
+  if (interviewSaving) return;
+
+  interviewForm.reset();
+  clearErrors(interviewForm);
+
+  interviewFormPanel.classList.add("hide");
+
+  const app = applications.find(item =>
+    String(item.id) === selectedApplicationId
+  );
+
+  if (app?.status === "INTERVIEW") {
+    addInterviewBtn.classList.remove("hide");
+  }
+});
+
+interviewForm.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (interviewSaving || !validate(interviewForm)) return;
+
+  const applicationId = selectedApplicationId;
+  if (!applicationId) return;
+
+  const data = new URLSearchParams({
+    scheduledAt: $("interviewDateTime").value,
+    type: $("interviewType").value,
+    format: $("interviewFormat").value
+  });
+
+  interviewSaving = true;
+
+  saveInterviewBtn.disabled = true;
+  cancelInterviewBtn.disabled = true;
+  closeDetailsBtn.disabled = true;
+  saveInterviewBtn.textContent = "Saving...";
+
+  try {
+    await requestJson(
+      `${API}/${encodeURIComponent(applicationId)}/interviews`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: data.toString()
+      }
+    );
+
+    notify("Interview round saved successfully.");
+
+    interviewForm.reset();
+    clearErrors(interviewForm);
+    interviewFormPanel.classList.add("hide");
+
+    if (selectedApplicationId === applicationId) {
+      addInterviewBtn.classList.remove("hide");
+      await loadInterviews(applicationId);
+    }
+
+  } catch (error) {
+    notify(
+      `${error.message} Your interview details are still here.`,
+      "error"
+    );
+
+  } finally {
+    interviewSaving = false;
+
+    saveInterviewBtn.disabled = false;
+    cancelInterviewBtn.disabled = false;
+    closeDetailsBtn.disabled = false;
+    saveInterviewBtn.textContent = "Save Interview";
+  }
+});
+
+/* Save Interview Notes */
+
+interviewList.addEventListener("submit", async event => {
+  const notesForm = event.target.closest(".interview-notes-form");
+  if (!notesForm) return;
+
+  event.preventDefault();
+
+  const applicationId = selectedApplicationId;
+  if (!applicationId) return;
+
+  const notes = notesForm.elements.notes.value.trim();
+
+  if (!notes) {
+    invalidField(
+      notesForm.elements.notes,
+      "Enter a note before saving."
+    );
+
+    notesForm.elements.notes.focus();
+    return;
+  }
+
+  const button = notesForm.querySelector(
+    'button[type="submit"]'
+  );
+
+  if (button.disabled) return;
+
+  const roundNumber = notesForm.dataset.round;
+
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  try {
+    await requestJson(
+      `${API}/${encodeURIComponent(applicationId)}/interviews/${encodeURIComponent(roundNumber)}/notes`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({notes}).toString()
+      }
+    );
+
+    notify("Interview notes saved successfully.");
+
+    if (selectedApplicationId === applicationId) {
+      await loadInterviews(applicationId);
+    }
+
+  } catch (error) {
+    notify(
+      `${error.message} Your notes are still here.`,
+      "error"
+    );
+
+  } finally {
+    if (button.isConnected) {
+      button.disabled = false;
+      button.textContent = "Save Notes";
+    }
+  }
+});
+
+interviewList.addEventListener("input", event => {
+  if (event.target.matches(".interview-notes-form textarea")) {
+    clearFieldError(event.target);
+  }
+});
+
+/* Initialize Application Tracker */
 
 loadApplications().catch(error => {
-  alert(error.message);
+  console.error("Could not load applications:", error);
+  notify(error.message, "error");
 });
