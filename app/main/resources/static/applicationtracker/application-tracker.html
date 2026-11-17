@@ -5,216 +5,228 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Application Tracker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../dashboard/dashboard.css">
   <link rel="stylesheet" href="application-tracker.css">
 </head>
 <body>
-  <main>
-    <div class="tracker-header">
-      <div>
-        <h1>Application Tracker</h1>
-        <p class="sub">Manage your job applications in one place.</p>
-      </div>
-      <a class="back-dashboard" href="../dashboard/index.html">
-        &larr; Back to Dashboard
-      </a>
+<main>
+  <div class="tracker-header">
+    <div>
+      <h1>Application Tracker</h1>
+      <p class="sub">Manage your job applications in one place.</p>
     </div>
+    <a class="back-dashboard" href="../dashboard/index.html">
+      &larr; Back to Dashboard
+    </a>
+  </div>
 
-    <div id="trackerMessage" class="tracker-message" role="status"
-         aria-live="polite" hidden></div>
+  <div id="trackerMessage" class="tracker-message"
+       role="status" aria-live="polite" hidden></div>
 
-    <div class="tracker-actions">
-      <button id="addApplicationBtn" type="button" class="primary-btn">
-        + Add Application
-      </button>
-    </div>
+  <div class="tracker-actions">
+    <button id="addApplicationBtn" type="button" class="primary-btn">
+      + Add Application
+    </button>
+  </div>
 
-    <!-- Add/Edit Application -->
-    <section id="applicationFormPanel" class="panel form-panel hide">
-      <h2 id="formTitle">Add New Application</h2>
+  <section id="applicationFormPanel" class="panel form-panel hide">
+    <h2 id="formTitle">Add New Application</h2>
 
-      <form id="applicationForm" novalidate>
-        <div class="form-grid">
-          <label>
-            Company *
-            <input id="employer" type="text" required maxlength="150"
-                   autocomplete="organization">
-            <span class="field-error" data-error-for="employer"></span>
-          </label>
-
-          <label>
-            Position *
-            <input id="role" type="text" required maxlength="150">
-            <span class="field-error" data-error-for="role"></span>
-          </label>
-
-          <label>
-            Application Date *
-            <input id="applicationDate" type="date" required>
-            <span class="field-error" data-error-for="applicationDate"></span>
-          </label>
-
-          <label>
-            Source *
-            <input id="source" type="text" required maxlength="150"
-                   placeholder="LinkedIn, Handshake, etc.">
-            <span class="field-error" data-error-for="source"></span>
-          </label>
-
-          <label>
-            Deadline (optional)
-            <input id="deadline" type="date">
-          </label>
-
-          <label>
-            Status
-            <select id="status">
-              <option value="PLANNED">Planned</option>
-              <option value="IN_PROGRESS">Preparing Application</option>
-              <option value="APPLIED">Applied</option>
-              <option value="ONLINE_ASSESSMENT">Online Assessment</option>
-              <option value="PHONE_SCREEN">Phone Screen</option>
-              <option value="INTERVIEW">Interview</option>
-              <option value="OFFER">Offer Received</option>
-              <option value="ACCEPTED">Accepted</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="WITHDRAWN">Withdrawn</option>
-            </select>
-          </label>
-        </div>
-
-        <label class="notes-label">
-          Notes (optional)
-          <textarea id="notes" rows="3"
-                    placeholder="Add any useful application details..."></textarea>
+    <form id="applicationForm" novalidate>
+      <div class="form-grid">
+        <label>
+          Company *
+          <input id="employer" type="text" maxlength="200"
+                 autocomplete="organization" required>
         </label>
 
-        <div class="form-actions">
-          <button id="cancelApplicationBtn" type="button">Cancel</button>
-          <button id="saveApplicationBtn" type="submit" class="primary-btn">
-            Save Application
-          </button>
-        </div>
-      </form>
-    </section>
+        <label>
+          Position *
+          <input id="role" type="text" maxlength="200" required>
+        </label>
 
-    <!-- Application Board -->
-    <section class="tracker-board" aria-label="Applications by status">
-      <div class="col">
-        <h3>Plan to Apply <span class="count" id="plannedCount">0</span></h3>
-        <div id="plannedApplications">
-          <p class="mute">No applications yet.</p>
-        </div>
+        <label>
+          Application Date
+          <input id="applicationDate" type="date">
+          <small id="applicationDateHelp" class="field-help">
+            Available after you mark the application as Applied.
+          </small>
+        </label>
+
+        <label>
+          Source *
+          <input id="source" type="text" maxlength="200"
+                 placeholder="LinkedIn, Handshake, etc." required>
+        </label>
+
+        <label>
+          Deadline (optional)
+          <input id="deadline" type="date">
+        </label>
+
+        <label>
+          Status
+          <select id="status">
+            <option value="PLANNED">Planned</option>
+            <option value="IN_PROGRESS">Preparing Application</option>
+            <option value="APPLIED">Applied</option>
+            <option value="ONLINE_ASSESSMENT">Online Assessment</option>
+            <option value="PHONE_SCREEN">Phone Screen</option>
+            <option value="INTERVIEW">Interview</option>
+            <option value="OFFER">Offer Received</option>
+            <option value="ACCEPTED">Accepted</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="WITHDRAWN">Withdrawn</option>
+          </select>
+        </label>
       </div>
 
-      <div class="col">
-        <h3>Applied <span class="count" id="appliedCount">0</span></h3>
-        <div id="appliedApplications">
-          <p class="mute">No applications yet.</p>
-        </div>
-      </div>
-
-      <div class="col">
-        <h3>Past Applications <span class="count" id="pastCount">0</span></h3>
-        <div id="pastApplications">
-          <p class="mute">No applications yet.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Application Details -->
-    <section id="detailsPanel" class="panel details-panel hide"
-             aria-labelledby="detailsTitle">
-      <div class="details-header">
-        <div>
-          <h2 id="detailsTitle">Application Details</h2>
-          <p id="detailsSubtitle" class="mute"></p>
-        </div>
-        <button id="closeDetailsBtn" type="button">Close</button>
-      </div>
-
-      <div id="detailsContent"></div>
-
-      <!-- Interview Rounds -->
-      <section class="interview-section" aria-labelledby="interviewTitle">
-        <div class="interview-heading">
-          <div>
-            <h3 id="interviewTitle">Interview Rounds</h3>
-            <p class="mute">
-              Track scheduled interviews and record notes for each round.
-            </p>
-          </div>
-          <span class="interview-count" id="interviewCount">0 rounds</span>
-        </div>
-
-        <div id="interviewList" aria-live="polite">
-          <p class="mute">No interview rounds recorded.</p>
-        </div>
-
-        <p id="interviewStatusMessage" class="interview-message hide">
-          To schedule an interview, update this application's status
-          to Interview.
-        </p>
-
-        <div id="interviewFormPanel" class="interview-form-panel hide">
-          <h4>Schedule Interview Round</h4>
-
-          <form id="interviewForm" novalidate>
-            <div class="form-grid">
-              <label>
-                Date and Time *
-                <input id="interviewDateTime" type="datetime-local" required>
-                <span class="field-error" data-error-for="interviewDateTime"></span>
-              </label>
-
-              <label>
-                Interview Type *
-                <select id="interviewType" required>
-                  <option value="RECRUITER_SCREEN">Recruiter screen</option>
-                  <option value="BEHAVIORAL">Behavioral</option>
-                  <option value="TECHNICAL">Technical</option>
-                  <option value="CASE">Case</option>
-                  <option value="PANEL">Panel</option>
-                  <option value="FINAL_ROUND">Final round</option>
-                  <option value="OTHER">Other</option>
-                </select>
-              </label>
-
-              <label>
-                Interview Format *
-                <select id="interviewFormat" required>
-                  <option value="PHONE">Phone</option>
-                  <option value="VIDEO_CALL">Video call</option>
-                  <option value="ON_CAMPUS">On campus</option>
-                  <option value="ON_SITE">On-site at employer</option>
-                  <option value="OTHER">Other</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="form-actions">
-              <button id="cancelInterviewBtn" type="button">Cancel</button>
-              <button id="saveInterviewBtn" type="submit" class="primary-btn">
-                Save Interview
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <button id="addInterviewBtn" type="button" class="primary-btn hide">
-          + Add Interview Round
-        </button>
-      </section>
+      <label class="notes-label">
+        Notes (optional)
+        <textarea id="notes" rows="3"
+          placeholder="Add any useful application details..."></textarea>
+      </label>
 
       <div class="form-actions">
-        <button id="editApplicationBtn" type="button" class="primary-btn">
-          Edit Application
+        <button id="cancelApplicationBtn" type="button">
+          Cancel
+        </button>
+        <button id="saveApplicationBtn" type="submit" class="primary-btn">
+          Save Application
         </button>
       </div>
-    </section>
-  </main>
+    </form>
+  </section>
 
-  <script src="application-tracker.js"></script>
+  <section class="tracker-board" aria-label="Applications by status">
+    <div class="col">
+      <h3>
+        Plan to Apply
+        <span class="count" id="plannedCount">0</span>
+      </h3>
+      <div id="plannedApplications">
+        <p class="mute">No applications yet.</p>
+      </div>
+    </div>
+
+    <div class="col">
+      <h3>
+        Applied
+        <span class="count" id="appliedCount">0</span>
+      </h3>
+      <div id="appliedApplications">
+        <p class="mute">No applications yet.</p>
+      </div>
+    </div>
+
+    <div class="col">
+      <h3>
+        Past Applications
+        <span class="count" id="pastCount">0</span>
+      </h3>
+      <div id="pastApplications">
+        <p class="mute">No applications yet.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="detailsPanel" class="panel details-panel hide"
+           aria-labelledby="detailsTitle">
+
+    <div class="details-header">
+      <div>
+        <h2 id="detailsTitle">Application Details</h2>
+        <p id="detailsSubtitle" class="mute"></p>
+      </div>
+      <button id="closeDetailsBtn" type="button">Close</button>
+    </div>
+
+    <div id="detailsContent"></div>
+
+    <section class="interview-section" aria-labelledby="interviewTitle">
+      <div class="interview-heading">
+        <div>
+          <h3 id="interviewTitle">Interview Rounds</h3>
+          <p class="mute">
+            Track scheduled interviews and record notes for each round.
+          </p>
+        </div>
+        <span class="interview-count" id="interviewCount">0 rounds</span>
+      </div>
+
+      <div id="interviewList" aria-live="polite">
+        <p class="mute">No interview rounds recorded.</p>
+      </div>
+
+      <p id="interviewStatusMessage" class="interview-message hide">
+        To schedule an interview, update this application's status
+        to Interview.
+      </p>
+
+      <div id="interviewFormPanel" class="interview-form-panel hide">
+        <h4>Schedule Interview Round</h4>
+
+        <form id="interviewForm" novalidate>
+          <div class="form-grid">
+            <label>
+              Date and Time *
+              <input id="interviewDateTime"
+                     type="datetime-local" required>
+            </label>
+
+            <label>
+              Interview Type *
+              <select id="interviewType" required>
+                <option value="RECRUITER_SCREEN">Recruiter screen</option>
+                <option value="BEHAVIORAL">Behavioral</option>
+                <option value="TECHNICAL">Technical</option>
+                <option value="CASE">Case</option>
+                <option value="PANEL">Panel</option>
+                <option value="FINAL_ROUND">Final round</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </label>
+
+            <label>
+              Interview Format *
+              <select id="interviewFormat" required>
+                <option value="PHONE">Phone</option>
+                <option value="VIDEO_CALL">Video call</option>
+                <option value="ON_CAMPUS">On campus</option>
+                <option value="ON_SITE">On-site at employer</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button id="cancelInterviewBtn" type="button">Cancel</button>
+            <button id="saveInterviewBtn" type="submit" class="primary-btn">
+              Save Interview
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <button id="addInterviewBtn" type="button" class="primary-btn hide">
+        + Add Interview Round
+      </button>
+    </section>
+
+    <div class="details-bottom-actions">
+      <button id="deleteApplicationBtn" type="button"
+              class="danger-btn">
+        Delete Application
+      </button>
+
+      <button id="editApplicationBtn" type="button"
+              class="primary-btn">
+        Edit Application
+      </button>
+    </div>
+  </section>
+</main>
+
+<script src="application-tracker.js"></script>
 </body>
 </html>

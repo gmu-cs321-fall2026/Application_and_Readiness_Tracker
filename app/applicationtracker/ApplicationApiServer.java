@@ -21,8 +21,8 @@ public class ApplicationApiServer {
     private static final ApplicationTracker tracker =
             new ApplicationTracker();
 
-    // one shared checklist for the entire application tracker
-    private static final Checklist readinessChecklist = new Checklist();
+    private static final Checklist readinessChecklist =
+            new Checklist();
 
     private static final Path STATIC_ROOT =
             Path.of("app/main/resources/static")
@@ -30,6 +30,11 @@ public class ApplicationApiServer {
                     .normalize();
 
     public static void main(String[] args) throws IOException {
+
+        // Load saved data before accepting requests.
+        ApplicationStorage.load(tracker);
+        InterviewStorage.load(tracker);
+        ReadinessStorage.load(readinessChecklist);
 
         HttpServer server = HttpServer.create(
                 new InetSocketAddress(8080), 0);
@@ -46,14 +51,7 @@ public class ApplicationApiServer {
                 "/",
                 ApplicationApiServer::handleStatic);
 
-        // restore previously saved applications and interviews
-        ApplicationStorage.load(tracker);
-        InterviewStorage.load(tracker);
-
-        // restore saved checklist progress, tasks, and links
-        ReadinessStorage.load(readinessChecklist);
-
-        // calendar notes: see CalendarApi.java
+        // Preserve the Calendar team's API.
         CalendarApi.register(server);
 
         server.start();
@@ -63,16 +61,17 @@ public class ApplicationApiServer {
                 "http://localhost:8080/applicationtracker/application-tracker.html");
     }
 
-    // handle application and interview requests
-    private static synchronized void handleApi(HttpExchange exchange)
-            throws IOException {
+    // APPLICATION TRACKER API
+
+    private static synchronized void handleApi(
+            HttpExchange exchange) throws IOException {
 
         String method = exchange.getRequestMethod();
         String path = exchange.getRequestURI().getPath();
 
         try {
 
-            // retrieve all applications or create a new application
+            // List applications or create an application.
             if (path.equals("/api/applications")) {
 
                 if (method.equals("GET")) {
@@ -82,36 +81,50 @@ public class ApplicationApiServer {
                 }
 
                 if (method.equals("POST")) {
+
                     Map<String, String> data = readForm(exchange);
 
-                    Application app = tracker.createApplication(
+                    ApplicationStatus status =
+                            ApplicationStatus.valueOf(
+                                    required(data, "status"));
+
+                    Application app = tracker.createRecord(
                             data.get("employer"),
                             data.get("role"),
                             parseDate(data.get("applicationDate")),
                             data.get("source"),
-                            parseDate(data.get("deadline"))
-                    );
+                            parseDate(data.get("deadline")),
+                            status,
+                            data.get("notes"));
 
-                    app.setInitialStatus(
-                            ApplicationStatus.valueOf(data.get("status"))
-                    );
+                    try {
+                        ApplicationStorage.save(allApplications());
+                    } catch (IOException ex) {
+                        tracker.deleteApplication(app.getId());
+                        throw ex;
+                    }
 
-                    tracker.updateNotes(
-                            app.getId(),
-                            data.get("notes")
-                    );
-
-                    ApplicationStorage.save(allApplications());
-
-                    send(exchange, 201, applicationJson(app),
+                    send(exchange, 201,
+                            applicationJson(app),
                             "application/json");
                     return;
                 }
+
+                send(exchange, 405,
+                        "{\"error\":\"Method not allowed\"}",
+                        "application/json");
+                return;
             }
 
-            // application counts used by the dashboard
-            if (path.equals("/api/applications/summary")
-                    && method.equals("GET")) {
+            // Preserve the Dashboard summary endpoint.
+            if (path.equals("/api/applications/summary")) {
+
+                if (!method.equals("GET")) {
+                    send(exchange, 405,
+                            "{\"error\":\"Method not allowed\"}",
+                            "application/json");
+                    return;
+                }
 
                 List<Application> all = allApplications();
 
@@ -143,24 +156,32 @@ public class ApplicationApiServer {
 
             String prefix = "/api/applications/";
 
-            // interview requests for an individual application
-            if (path.startsWith(prefix)
-                    && path.contains("/interviews")) {
+            if (path.startsWith(prefix)) {
 
-                String remainder = path.substring(prefix.length());
+                String remainder =
+                        path.substring(prefix.length());
+
                 String[] parts = remainder.split("/");
 
+                if (parts.length == 0 || parts[0].isBlank()) {
+                    throw new IllegalArgumentException(
+                            "Application ID is required.");
+                }
+
+                String id = parts[0];
+
+                // INTERVIEW ENDPOINTS
+                // Preserve these for the Interview team.
+
                 if (parts.length >= 2
-                        && !parts[0].isBlank()
                         && parts[1].equals("interviews")) {
 
-                    String applicationId = parts[0];
-
-                    // retrieve interview rounds
-                    if (parts.length == 2 && method.equals("GET")) {
+                    // Get interview rounds.
+                    if (parts.length == 2
+                            && method.equals("GET")) {
 
                         List<InterviewRound> rounds =
-                                tracker.getInterviewRounds(applicationId);
+                                tracker.getInterviewRounds(id);
 
                         send(exchange, 200,
                                 interviewsJson(rounds),
@@ -168,21 +189,22 @@ public class ApplicationApiServer {
                         return;
                     }
 
-                    // schedule a new interview round
-                    if (parts.length == 2 && method.equals("POST")) {
+                    // Schedule interview round.
+                    if (parts.length == 2
+                            && method.equals("POST")) {
 
-                        Map<String, String> data = readForm(exchange);
+                        Map<String, String> data =
+                                readForm(exchange);
 
                         InterviewRound round =
                                 tracker.addInterviewRound(
-                                        applicationId,
+                                        id,
                                         LocalDateTime.parse(
-                                                data.get("scheduledAt")),
+                                                required(data, "scheduledAt")),
                                         InterviewFormat.valueOf(
-                                                data.get("format")),
+                                                required(data, "format")),
                                         InterviewType.valueOf(
-                                                data.get("type"))
-                                );
+                                                required(data, "type")));
 
                         InterviewStorage.save(allApplications());
 
@@ -192,21 +214,21 @@ public class ApplicationApiServer {
                         return;
                     }
 
-                    // add notes to an interview round
+                    // Save interview notes.
                     if (parts.length == 4
                             && parts[3].equals("notes")
                             && method.equals("POST")) {
 
-                        Map<String, String> data = readForm(exchange);
+                        Map<String, String> data =
+                                readForm(exchange);
 
                         int roundNumber =
                                 Integer.parseInt(parts[2]);
 
                         tracker.addInterviewNotes(
-                                applicationId,
+                                id,
                                 roundNumber,
-                                data.get("notes")
-                        );
+                                data.get("notes"));
 
                         InterviewStorage.save(allApplications());
 
@@ -216,48 +238,107 @@ public class ApplicationApiServer {
                         return;
                     }
                 }
-            }
 
-            // update an existing application
-            if (path.startsWith(prefix) && method.equals("PUT")) {
+                // UPDATE APPLICATION
+                if (parts.length == 1
+                        && method.equals("PUT")) {
 
-                String id = path.substring(prefix.length());
+                    Application app = tracker.findById(id);
+                    Map<String, String> data = readForm(exchange);
 
-                Application app = tracker.findById(id);
-                Map<String, String> data = readForm(exchange);
+                    // Save old values in case disk persistence fails.
+                    String oldEmployer = app.getEmployerName();
+                    String oldRole = app.getRoleTitle();
+                    LocalDate oldDate = app.getApplicationDate();
+                    String oldSource = app.getSource();
+                    LocalDate oldDeadline = app.getDeadline();
+                    ApplicationStatus oldStatus = app.getStatus();
+                    String oldNotes = app.getNotes();
 
-                ApplicationStatus requestedStatus =
-                        ApplicationStatus.valueOf(
-                                data.get("status"));
+                    // Validate the complete record before mutation.
+                    tracker.updateRecord(
+                            id,
+                            data.get("employer"),
+                            data.get("role"),
+                            parseDate(data.get("applicationDate")),
+                            data.get("source"),
+                            parseDate(data.get("deadline")),
+                            ApplicationStatus.valueOf(
+                                    required(data, "status")),
+                            data.get("notes"));
 
-                tracker.updateStatus(id, requestedStatus);
+                    try {
+                        ApplicationStorage.save(allApplications());
 
-                app.updateDetails(
-                        data.get("employer"),
-                        data.get("role"),
-                        parseDate(data.get("applicationDate")),
-                        data.get("source"),
-                        parseDate(data.get("deadline"))
-                );
+                    } catch (IOException ex) {
 
-                tracker.updateNotes(
-                        id,
-                        data.get("notes")
-                );
+                        app.restoreRecord(
+                                oldEmployer,
+                                oldRole,
+                                oldDate,
+                                oldSource,
+                                oldDeadline,
+                                oldStatus,
+                                oldNotes);
 
-                ApplicationStorage.save(allApplications());
+                        throw ex;
+                    }
 
-                send(exchange, 200,
-                        applicationJson(app),
-                        "application/json");
-                return;
+                    send(exchange, 200,
+                            applicationJson(app),
+                            "application/json");
+                    return;
+                }
+
+                // DELETE APPLICATION
+                if (parts.length == 1
+                        && method.equals("DELETE")) {
+
+                    Application target = tracker.findById(id);
+
+                    List<Application> original =
+                            allApplications();
+
+                    List<Application> remaining =
+                            new ArrayList<>(original);
+
+                    remaining.removeIf(app ->
+                            app.getId().equals(target.getId()));
+
+                    // Remove associated interview records from disk.
+                    InterviewStorage.save(remaining);
+
+                    try {
+                        ApplicationStorage.save(remaining);
+
+                    } catch (IOException ex) {
+
+                        // Restore interview storage if saving
+                        // applications fails.
+                        try {
+                            InterviewStorage.save(original);
+                        } catch (IOException restoreError) {
+                            ex.addSuppressed(restoreError);
+                        }
+
+                        throw ex;
+                    }
+
+                    tracker.deleteApplication(id);
+
+                    send(exchange, 200,
+                            "{\"message\":\"Application deleted\"}",
+                            "application/json");
+                    return;
+                }
             }
 
             send(exchange, 404,
                     "{\"error\":\"Endpoint not found\"}",
                     "application/json");
 
-        } catch (IllegalArgumentException | IllegalStateException
+        } catch (IllegalArgumentException
+                | IllegalStateException
                 | NullPointerException ex) {
 
             int status =
@@ -274,7 +355,22 @@ public class ApplicationApiServer {
         }
     }
 
-    // handle shared readiness checklist requests
+    private static String required(
+            Map<String, String> data,
+            String key) {
+
+        String value = data.get(key);
+
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                    key + " is required.");
+        }
+
+        return value;
+    }
+
+    // READINESS API - PRESERVED FOR TEAMMATES
+
     private static synchronized void handleReadiness(
             HttpExchange exchange) throws IOException {
 
@@ -283,7 +379,6 @@ public class ApplicationApiServer {
 
         try {
 
-            // retrieve checklist and current progress
             if (path.equals("/api/readiness")
                     && method.equals("GET")) {
 
@@ -293,7 +388,6 @@ public class ApplicationApiServer {
                 return;
             }
 
-            // checklist changes must use POST
             if (!method.equals("POST")) {
 
                 send(exchange, 405,
@@ -306,7 +400,6 @@ public class ApplicationApiServer {
 
             switch (path) {
 
-                // toggle completion of one task
                 case "/api/readiness/toggle" -> {
 
                     int number =
@@ -318,7 +411,6 @@ public class ApplicationApiServer {
                     }
                 }
 
-                // add a custom task
                 case "/api/readiness/items" -> {
 
                     String title = data.get("title");
@@ -328,11 +420,9 @@ public class ApplicationApiServer {
                                 "Task title cannot be empty.");
                     }
 
-                    readinessChecklist.addCustomItem(
-                            title.trim());
+                    readinessChecklist.addCustomItem(title.trim());
                 }
 
-                // remove a custom task
                 case "/api/readiness/items/remove" -> {
 
                     int number =
@@ -342,7 +432,6 @@ public class ApplicationApiServer {
                             readinessChecklist.removeItem(number);
 
                     if (!result.equals("REMOVED")) {
-
                         throw new IllegalArgumentException(
                                 result.equals("NOT_CUSTOM")
                                         ? "Default tasks cannot be removed."
@@ -350,7 +439,6 @@ public class ApplicationApiServer {
                     }
                 }
 
-                // rename a custom task
                 case "/api/readiness/items/rename" -> {
 
                     int number =
@@ -362,22 +450,18 @@ public class ApplicationApiServer {
                                     data.get("title"));
 
                     if (!result.equals("RENAMED")) {
-
                         throw new IllegalArgumentException(
                                 switch (result) {
                                     case "NOT_CUSTOM" ->
                                             "Default tasks cannot be renamed.";
-
                                     case "EMPTY" ->
                                             "Task title cannot be empty.";
-
                                     default ->
                                             "Invalid checklist item number.";
                                 });
                     }
                 }
 
-                // add, edit, or remove a task's external link
                 case "/api/readiness/items/link" -> {
 
                     int number =
@@ -395,11 +479,9 @@ public class ApplicationApiServer {
                     }
                 }
 
-                // complete every task
                 case "/api/readiness/complete-all" ->
                         readinessChecklist.markAllComplete();
 
-                // reset all task completion statuses
                 case "/api/readiness/reset" ->
                         readinessChecklist.resetAll();
 
@@ -411,15 +493,14 @@ public class ApplicationApiServer {
                 }
             }
 
-            // permanently save after each successful change
             ReadinessStorage.save(readinessChecklist);
 
-            // return updated checklist to refresh the frontend
             send(exchange, 200,
                     readinessJson(),
                     "application/json");
 
-        } catch (IllegalArgumentException | NullPointerException ex) {
+        } catch (IllegalArgumentException
+                | NullPointerException ex) {
 
             String message = ex.getMessage() == null
                     ? "Missing or invalid checklist data."
@@ -431,7 +512,8 @@ public class ApplicationApiServer {
         }
     }
 
-    // retrieve all applications from the tracker
+    // APPLICATION DATA HELPERS
+
     private static List<Application> allApplications() {
 
         List<Application> all = new ArrayList<>();
@@ -443,7 +525,6 @@ public class ApplicationApiServer {
         return all;
     }
 
-    // convert all applications to a JSON array
     private static String listJson() {
 
         StringBuilder result = new StringBuilder("[");
@@ -460,7 +541,6 @@ public class ApplicationApiServer {
         return result.append("]").toString();
     }
 
-    // convert an application to JSON
     private static String applicationJson(Application app) {
 
         return "{"
@@ -482,7 +562,8 @@ public class ApplicationApiServer {
                 + "}";
     }
 
-    // convert one interview round to JSON
+    // INTERVIEW DATA HELPERS
+
     private static String interviewJson(InterviewRound round) {
 
         return "{"
@@ -499,7 +580,6 @@ public class ApplicationApiServer {
                 + "}";
     }
 
-    // convert interview rounds into a JSON array
     private static String interviewsJson(
             List<InterviewRound> rounds) {
 
@@ -517,7 +597,8 @@ public class ApplicationApiServer {
         return result.append("]").toString();
     }
 
-    // convert readiness checklist and progress into JSON
+    // READINESS JSON - PRESERVED
+
     private static String readinessJson() {
 
         List<ChecklistItem> items =
@@ -567,7 +648,8 @@ public class ApplicationApiServer {
                 .toString();
     }
 
-    // escape special characters for valid JSON
+    // JSON ENCODING
+
     private static String jsonString(Object value) {
 
         if (value == null) {
@@ -613,14 +695,14 @@ public class ApplicationApiServer {
                 : LocalDate.parse(value);
     }
 
-    // read form data submitted by the frontend
+    // FORM PARSING
+
     private static Map<String, String> readForm(
             HttpExchange exchange) throws IOException {
 
         String body = new String(
                 exchange.getRequestBody().readAllBytes(),
-                StandardCharsets.UTF_8
-        );
+                StandardCharsets.UTF_8);
 
         Map<String, String> data = new HashMap<>();
 
@@ -644,7 +726,8 @@ public class ApplicationApiServer {
         return data;
     }
 
-    // serve frontend files for all three views
+    // STATIC FILE SERVER - PRESERVED
+
     private static void handleStatic(
             HttpExchange exchange) throws IOException {
 
@@ -701,7 +784,8 @@ public class ApplicationApiServer {
         }
     }
 
-    // send an HTTP response
+    // HTTP RESPONSE HELPER
+
     private static void send(
             HttpExchange exchange,
             int status,

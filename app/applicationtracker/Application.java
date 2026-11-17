@@ -1,6 +1,3 @@
-/*
- * Represents one job application and stores its information.
- */
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,13 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-// Represents a single job or internship application
 public class Application {
-
-    // Each application has a unique identifier
     private String id;
-
-    // Information about the application
     private String employerName;
     private String roleTitle;
     private LocalDate applicationDate;
@@ -26,163 +18,206 @@ public class Application {
     private String notes;
     private ApplicationStatus status;
 
-    // All interview rounds for this application
     private final List<InterviewRound> interviewRounds = new ArrayList<>();
 
-    // Constructor creates a new application
     public Application(String employerName, String roleTitle,
                        LocalDate applicationDate, String source,
                        LocalDate deadline) {
+        validateText(employerName, "Company");
+        validateText(roleTitle, "Position");
+        validateText(source, "Source");
 
-        // Validate required fields before creating the record
-        if (employerName == null || employerName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Employer name is required.");
-        }
-
-        if (roleTitle == null || roleTitle.trim().isEmpty()) {
-            throw new IllegalArgumentException("Role title is required.");
-        }
-
-        if (applicationDate == null) {
-            throw new IllegalArgumentException("Application date is required.");
-        }
-
-        if (source == null || source.trim().isEmpty()) {
-            throw new IllegalArgumentException("Application source is required.");
-        }
-
-        // Generate a unique ID for each application
-        this.id = UUID.randomUUID().toString();
-
-        // Save the application information
+        id = UUID.randomUUID().toString();
         this.employerName = employerName.trim();
         this.roleTitle = roleTitle.trim();
         this.applicationDate = applicationDate;
         this.source = source.trim();
         this.deadline = deadline;
-
-        // New applications start in the PLANNED stage
-        this.status = ApplicationStatus.PLANNED;
         this.notes = "";
+        this.status = ApplicationStatus.PLANNED;
     }
 
+    private static void validateText(String value, String name) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(name + " is required.");
+        }
+        if (value.trim().length() > 200) {
+            throw new IllegalArgumentException(
+                name + " cannot exceed 200 characters.");
+        }
+    }
 
-    // Allows an initial status when an existing application is first recorded.
-    // Later status changes still follow ApplicationTracker's transition rules.
+    public static boolean isPlanningStatus(ApplicationStatus status) {
+        return status == ApplicationStatus.PLANNED
+            || status == ApplicationStatus.IN_PROGRESS;
+    }
+
+    public static void validateApplicationDate(
+            ApplicationStatus status, LocalDate date) {
+
+        if (status == null) {
+            throw new IllegalArgumentException("Status is required.");
+        }
+
+        if (isPlanningStatus(status)) {
+            if (date != null) {
+                throw new IllegalArgumentException(
+                    "Application date must be empty until you apply.");
+            }
+        } else {
+            if (date == null) {
+                throw new IllegalArgumentException(
+                    "Application date is required for submitted applications.");
+            }
+            if (date.isAfter(LocalDate.now())) {
+                throw new IllegalArgumentException(
+                    "Application date cannot be in the future.");
+            }
+        }
+    }
+
     public void setInitialStatus(ApplicationStatus initialStatus) {
         if (initialStatus == null) {
             throw new IllegalArgumentException("Initial status is required.");
         }
         if (status != ApplicationStatus.PLANNED) {
-            throw new IllegalStateException("Initial status already assigned.");
+            throw new IllegalStateException(
+                "Initial status already assigned.");
         }
-        this.status = initialStatus;
+        validateApplicationDate(initialStatus, applicationDate);
+        status = initialStatus;
     }
 
-
-    // Restore the original ID when loading an application from storage.
     void restoreIdentity(String savedId) {
         if (savedId == null || savedId.isBlank()) {
             throw new IllegalArgumentException("Saved ID is required.");
         }
-        this.id = savedId;
+        id = savedId;
     }
 
-    // Getter methods allow other classes to read application data
-    public String getId() {
-        return id;
+    // Restore legacy records without changing historical data.
+    void restoreStatus(ApplicationStatus savedStatus) {
+        if (savedStatus == null) {
+            throw new IllegalArgumentException("Saved status is required.");
+        }
+        this.status = savedStatus;
     }
 
-    public String getEmployerName() {
-        return employerName;
-    }
+    public String getId() { return id; }
+    public String getEmployerName() { return employerName; }
+    public String getRoleTitle() { return roleTitle; }
+    public LocalDate getApplicationDate() { return applicationDate; }
+    public String getSource() { return source; }
+    public LocalDate getDeadline() { return deadline; }
+    public String getNotes() { return notes; }
+    public ApplicationStatus getStatus() { return status; }
 
-    public String getRoleTitle() {
-        return roleTitle;
-    }
-
-    public LocalDate getApplicationDate() {
-        return applicationDate;
-    }
-
-    public String getSource() {
-        return source;
-    }
-
-    public LocalDate getDeadline() {
-        return deadline;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public ApplicationStatus getStatus() {
-        return status;
-    }
-
-    // Updates notes associated with the application
     public void setNotes(String notes) {
         this.notes = notes == null ? "" : notes.trim();
     }
 
-    // Updates status; tracker validates transitions first
     void setStatus(ApplicationStatus status) {
+        if (status == null) {
+            throw new IllegalArgumentException("Status is required.");
+        }
+        validateApplicationDate(status, applicationDate);
         this.status = status;
     }
 
-    // Adds a new interview round; round numbers go 1, 2, 3...
-    public InterviewRound addInterviewRound(
-            LocalDateTime scheduledAt,
-            InterviewFormat format,
-            InterviewType type) {
+    // Validate everything before modifying any existing field.
+    public void updateRecord(
+            String employerName,
+            String roleTitle,
+            LocalDate applicationDate,
+            String source,
+            LocalDate deadline,
+            ApplicationStatus status,
+            String notes) {
 
-        InterviewRound round = new InterviewRound(
-                interviewRounds.size() + 1, scheduledAt, format, type);
-        interviewRounds.add(round);
-        return round;
-    }
-
-    // Returns interview rounds sorted by date (read-only copy)
-    public List<InterviewRound> getInterviewRounds() {
-        List<InterviewRound> sorted = new ArrayList<>(interviewRounds);
-        sorted.sort(Comparator.comparing(InterviewRound::getScheduledAt));
-        return Collections.unmodifiableList(sorted);
-    }
-
-    // Finds an interview round by its number
-    public Optional<InterviewRound> getInterviewRound(int roundNumber) {
-        return interviewRounds.stream()
-                .filter(r -> r.getRoundNumber() == roundNumber)
-                .findFirst();
-    }
-
-
-    // Updates editable application information.
-    public void updateDetails(String employerName, String roleTitle,
-            LocalDate applicationDate, String source, LocalDate deadline) {
-        if (employerName == null || employerName.trim().isEmpty()
-                || roleTitle == null || roleTitle.trim().isEmpty()
-                || applicationDate == null
-                || source == null || source.trim().isEmpty()) {
-            throw new IllegalArgumentException("Required fields cannot be empty.");
-        }
+        validateText(employerName, "Company");
+        validateText(roleTitle, "Position");
+        validateText(source, "Source");
+        validateApplicationDate(status, applicationDate);
 
         this.employerName = employerName.trim();
         this.roleTitle = roleTitle.trim();
         this.applicationDate = applicationDate;
         this.source = source.trim();
         this.deadline = deadline;
+        this.status = status;
+        this.notes = notes == null ? "" : notes.trim();
     }
 
-    // Controls how application details are displayed
+    // Retained for compatibility with existing Java code.
+    public void updateDetails(
+            String employerName,
+            String roleTitle,
+            LocalDate applicationDate,
+            String source,
+            LocalDate deadline) {
+
+        updateRecord(
+            employerName, roleTitle, applicationDate,
+            source, deadline, status, notes);
+    }
+
+    public InterviewRound addInterviewRound(
+            LocalDateTime scheduledAt,
+            InterviewFormat format,
+            InterviewType type) {
+
+        int nextNumber = interviewRounds.stream()
+            .mapToInt(InterviewRound::getRoundNumber)
+            .max().orElse(0) + 1;
+
+        InterviewRound round = new InterviewRound(
+            nextNumber, scheduledAt, format, type);
+
+        interviewRounds.add(round);
+        return round;
+    }
+
+    public List<InterviewRound> getInterviewRounds() {
+        List<InterviewRound> sorted = new ArrayList<>(interviewRounds);
+        sorted.sort(Comparator.comparing(
+            InterviewRound::getScheduledAt));
+        return Collections.unmodifiableList(sorted);
+    }
+
+    public Optional<InterviewRound> getInterviewRound(int roundNumber) {
+        return interviewRounds.stream()
+            .filter(round -> round.getRoundNumber() == roundNumber)
+            .findFirst();
+    }
+
     @Override
     public String toString() {
         return employerName + " | " + roleTitle
-                + " | " + status
-                + " | Date: " + applicationDate
-                + " | Source: " + source
-                + " | Deadline: " + (deadline == null ? "N/A" : deadline)
-                + " | Notes: " + notes;
+            + " | " + status
+            + " | Date: " + applicationDate
+            + " | Source: " + source
+            + " | Deadline: " + (deadline == null ? "N/A" : deadline)
+            + " | Notes: " + notes;
     }
+
+
+    // Used only to roll back an unsuccessful persistence operation.
+    void restoreRecord(
+            String employerName,
+            String roleTitle,
+            LocalDate applicationDate,
+            String source,
+            LocalDate deadline,
+            ApplicationStatus status,
+            String notes) {
+
+        this.employerName = employerName;
+        this.roleTitle = roleTitle;
+        this.applicationDate = applicationDate;
+        this.source = source;
+        this.deadline = deadline;
+        this.status = status;
+        this.notes = notes;
+    }
+
 }
