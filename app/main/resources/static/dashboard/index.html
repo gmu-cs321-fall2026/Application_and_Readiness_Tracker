@@ -12,6 +12,7 @@
   <button data-v="int" aria-pressed="false">Interviews</button>
   <a class="navlink" href="../calendar/calendar_view.html">Calendar</a>
   <a class="navlink" href="../checklist/checklist.html">Checklist</a>
+  <a class="navlink" href="../applicationtracker/application-tracker.html">Application Tracker</a>
 </nav>
 
 <section id="dash">
@@ -26,13 +27,9 @@
 
 <section id="int" class="hide panel"><h2>Interview rounds</h2><div id="rounds"></div></section>
 
-<section id="cal" class="hide panel">
-  <div class="cal"><button id="prev" aria-label="Previous month">&lt;</button><h2 id="mtitle"></h2><button id="next" aria-label="Next month">&gt;</button>
-    <div class="legend"><span class="chip iv">★ Interview</span><span class="chip ev">◆ Career event</span></div></div>
-  <div id="grid"></div>
-</section>
 </main>
 <script src="../checklist/checklist-store.js"></script>
-<script src="mock-data.js"></script>
-<script src="dashboard.js"></script>  <script src="application-summary.js"></script>
+<script src="dashboard-data.js"></script>
+<script src="dashboard.js"></script>
+<script src="application-summary.js"></script>
 </body></html>
