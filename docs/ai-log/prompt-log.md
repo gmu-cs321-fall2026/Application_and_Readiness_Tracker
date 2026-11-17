@@ -77,6 +77,26 @@ ChatGPT suggested:
 - Kept the Docker setup focused on the current console application instead of adding an unsupported web server or API.
 - Preserved other team files until their purpose and dependencies could be confirmed.
 
+### 2026-11-07: Linking the dashboard readiness checklist to the Checklist page (checklist-store.js, checklist.js, checklist.html, dashboard.js, mock-data.js, index.html)
+
+**AI Tool:** Claude
+
+**Asked:** I asked Claude how to connect the readiness checklist on the dashboard to the Readiness Checklist page my teammate built, so the dashboard shows her real items instead of my mock list, and the Checklist button still opens her page.
+
+**Produced:** Claude found that the Checklist page kept its items only in page memory, so nothing was saved and the dashboard had nothing to read. It created a shared file, checklist/checklist-store.js, with the default checklist items and two functions, loadChecklistItems() and saveChecklistItems(), that save the list in the browser's localStorage. The Checklist page and the dashboard both load this file, so checking an item on either page shows up on the other. It also added an "Open full checklist" link on the dashboard and made the dashboard reload the checklist when returning with the Back button. The store is in one file so it can later be switched to a backend endpoint without changing either page.
+
+**Changed or rejected:** The zip of updated files did not apply correctly on my machine, so I made the six edits by hand following Claude's instructions. I removed my old mock checklist items (Updated links, Cover letter template, etc.) and used the team's default items instead. I tested by checking items on the Checklist page, adding a custom item, and confirming the dashboard showed the same items and percentage. I told the teammate who owns the Checklist page about the small changes to checklist.js and checklist.html before merging. Limitation: the checklist is saved per browser, not on the server.
+
+### 2026-11-17: Replacing dashboard mock data with live Application Tracker data (dashboard-data.js, dashboard.js, dashboard.css, index.html)
+
+**AI Tool:** Claude
+
+**Asked:** I asked Claude to integrate the dashboard with the Application Tracker so it no longer uses mock data, and to make the board columns match all of the application statuses my teammate's tracker uses.
+
+**Produced:** Claude read the Application Tracker's Java API and created dashboard-data.js to replace mock-data.js. It loads applications from GET /api/applications and each application's interview rounds from GET /api/applications/{id}/interviews, and converts the backend's status and interview names into readable labels. The board now has one column for each status, with the same labels as the Application Tracker page: Planned, Preparing Application, Applied, Online Assessment, Phone Screen, Interview, Offer Received, Accepted, Rejected, Withdrawn. Planned and Preparing Application cards show their deadline, Interview cards show the next scheduled round, and clicking a card opens the Application Tracker. The Upcoming Interviews panel and Interviews tab now use real interview rounds. It also added an Application Tracker button to the navigation and removed the unused hidden calendar section. Claude tested the page against the running Java server with sample applications and interview rounds.
+
+**Changed or rejected:** Claude's first version replaced the Application Tracker "Live Summary" panel with summary tiles at the top of the page. I rejected that and asked to keep my teammate's Live Summary panel at the bottom, with the real-data columns above it. Claude's first version also used six combined columns; I asked for a column for every status so the dashboard matches the tracker exactly. The ten columns are shown in two rows of five so they fit on the page. I tested by adding applications with different statuses and an interview round on the Application Tracker page and confirming they appeared in the right columns. I accidentally committed to main, and GitHub rejected the push because main requires a pull request, so I moved the commit to a feature branch and opened a pull request instead. The readiness checklist on the dashboard still uses browser storage and is not yet connected to the tracker's /api/readiness endpoint.
+
 
 ## Application Tracker — AI Prompt Log
 
