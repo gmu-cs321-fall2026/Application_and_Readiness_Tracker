@@ -27,7 +27,7 @@ There are 5 features within this subsystem:
 
 The Application Tracker is currently implemented in Java 17. It supports creating job applications, updating application statuses, adding notes, and viewing applications by their progress.
 
-### Run Locally
+### Run Locally / console menu
 
 Make sure Java 17 or newer is installed.
 
@@ -38,6 +38,20 @@ mkdir -p out
 javac -d out app/applicationtracker/*.java
 java -cp out Main
 ```
+
+## Running the API server
+
+make sure your files are compiled;
+```
+javac -d out app/applicationtracker/*.java
+```
+
+run the ApplicationApiServer:
+```
+java -cp out ApplicationApiServer
+```
+
+There will be a prompt notifying you where the application is running. click or copy paste the link
 
 ### Running tests/
 
@@ -76,6 +90,6 @@ Run the application:
 docker run -it --rm application-tracker
 ```
 
-The application currently runs through a console menu. The web interface, API integration, and shared database are planned for future development.
+
 
 
