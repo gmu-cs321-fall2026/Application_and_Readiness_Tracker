@@ -386,3 +386,14 @@ Accepted all files, changed the front end files for checklist.
 
 **Prompt:** I asked what else I could do for my part, then pasted InterviewStorage.java so the test would match our code.
 
+## November 17, 2026
+
+**AI Tool:** Claude
+
+**Use:** I am trying to synch checklist with the rest of the files, there is some mismatch when demo -ing so I'm trying to find the cause. I had Claude look through the dashboard css file and looked at my checklist css file
+
+**Produced:** Synched my checklist files to the dashboard css
+
+**Accepted or Rejected:** accepted the css changes, there wasn't much different just slight tweaks on the color scheme and the dashboard.css code style.
+
+**Prompt:** i included the dashboard.css and checklist.css files and asked claude to synch the checklist so that it is the same style as dashboard.
