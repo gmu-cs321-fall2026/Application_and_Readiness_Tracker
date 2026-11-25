@@ -5,7 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Calendar | Application Tracker</title>
 <style>
-:root{--bg:#0f1720;--surface:#18222e;--ink:#e6edf5;--muted:#9aa9b8;--line:#2a3846;--int:#7aa2ff;--int-bg:#1d2d54;--evt:#4fd1a1;--evt-bg:#123a2d;--sel:#3a3217;--focus:#f0b429;color-scheme:dark}
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #dbe3ec;
+  --int: #2563eb;
+  --int-bg: #dbeafe;
+  --evt: #059669;
+  --evt-bg: #d1fae5;
+  --sel: #e2e8f0;
+  --focus: #f59e0b;
+  --hover: #f4f7fb;
+  --today: #f1f6ff;
+  --warn-bg: #fff6dc;
+  --warn-border: #e8c766;
+  --bar-bg: #dfe5ec;
+  --toast-bg: #334155;
+  color-scheme: light;
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
@@ -48,8 +67,10 @@ svg.i{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .chip.event{background:var(--evt-bg);color:var(--evt);border:1.5px dashed var(--evt)}
 .more{font-size:12px;color:var(--muted);padding:0 4px}
 .card{box-shadow:0 1px 2px rgba(20,32,46,.06)}
-.cell{transition:background .12s}.cell:hover{background:#f4f7fb}.cell.sel{background:var(--sel)}
-.cell.today{background:#f1f6ff}
+.cell{transition:background .12s}
+.cell:hover{background:var(--hover)}
+.cell.sel{background:var(--sel)}
+.cell.today{background:var(--today)}
 .cell.today .n b{background:var(--int);color:#fff}
 .chip{border-radius:6px}
 .chip .t b{font-weight:700}
@@ -109,12 +130,34 @@ select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px 
 .chip{font-size:12.5px;padding:3px 6px}
 @media(max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:560px){:root{--cell-h:84px}.wrap{padding:12px}}
-.cell:hover{background:#1f2b39}
-.cell.today{background:#16243d}
-.cell.today .n b{color:#0f1720}
-.warn{background:#3a3217;border-color:#7a6320}
-.readiness .bar{background:#2a3846}
-.toast{background:#2a3846;color:var(--ink)}
+.cell:hover{background:var(--hover)}
+.cell.today{background:var(--today)}
+.cell.today .n b{color:var(--surface)}
+.warn{background:var(--warn-bg);border-color:var(--warn-border)}
+.readiness .bar{background:var(--bar-bg)}
+.toast{background:var(--toast-bg);color:var(--ink)}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1720;
+    --surface: #18222e;
+    --ink: #e6edf5;
+    --muted: #9aa9b8;
+    --line: #2a3846;
+    --int: #7aa2ff;
+    --int-bg: #1d2d54;
+    --evt: #4fd1a1;
+    --evt-bg: #123a2d;
+    --sel: #3a3217;
+    --focus: #f0b429;
+    --hover: #1f2b39;
+    --today: #16243d;
+    --warn-bg: #3a3217;
+    --warn-border: #7a6320;
+    --bar-bg: #2a3846;
+    --toast-bg: #2a3846;
+    color-scheme: dark;
+  }
+}
 </style>
 </head>
 <body>
